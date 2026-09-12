@@ -576,6 +576,67 @@ h2 em {
   text-align: center;
 }
 
+.catalog-invite {
+  display: grid;
+  grid-template-columns: minmax(380px, 0.9fr) minmax(420px, 1.1fr);
+  align-items: center;
+  gap: clamp(55px, 9vw, 140px);
+  color: #f7f1e7;
+  background: var(--plum);
+}
+
+.catalog-message h2 {
+  font-size: clamp(2.8rem, 4.7vw, 4.7rem);
+}
+
+.catalog-message h2 em {
+  color: #e8bcb2;
+}
+
+.catalog-message > p:not(.kicker) {
+  max-width: 590px;
+  margin: 27px 0 32px;
+  color: #e4d7dc;
+  font-size: 0.94rem;
+}
+
+.class-features {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.class-features li {
+  padding: 20px 3px;
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  align-items: center;
+  gap: 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.class-features li > span {
+  color: #e8bcb2;
+  font: italic 500 0.84rem var(--serif);
+}
+
+.class-features strong,
+.class-features small {
+  display: block;
+}
+
+.class-features strong {
+  color: white;
+  font: 500 1.45rem var(--serif);
+}
+
+.class-features small {
+  margin-top: 2px;
+  color: #cdbfc5;
+  font-size: 0.72rem;
+}
+
 .how {
   color: #f7f1e7;
   background: var(--forest-deep);
@@ -731,6 +792,52 @@ h2 em {
 
 .about-copy .button {
   margin-top: 17px;
+}
+
+.student-work {
+  display: grid;
+  grid-template-columns: minmax(380px, 1.1fr) minmax(320px, 0.9fr);
+  align-items: center;
+  gap: clamp(50px, 9vw, 130px);
+  background: var(--paper);
+}
+
+.student-work > div:first-child > p:not(.kicker) {
+  max-width: 620px;
+  margin-top: 25px;
+  color: var(--muted);
+}
+
+.student-placeholder {
+  min-height: 340px;
+  padding: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  color: var(--forest);
+  background: radial-gradient(circle at 35% 35%, rgba(232, 200, 194, 0.85), transparent 31%), radial-gradient(circle at 66% 62%, rgba(152, 170, 152, 0.7), transparent 34%), var(--cream);
+  border: 1px solid var(--line);
+  text-align: center;
+}
+
+.student-placeholder > span {
+  margin-bottom: 17px;
+  color: var(--ochre);
+  font-size: 1.25rem;
+}
+
+.student-placeholder strong {
+  font: 500 clamp(2.3rem, 4vw, 3.7rem) var(--serif);
+}
+
+.student-placeholder small {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
 }
 
 .community-callout {
@@ -1034,6 +1141,10 @@ dialog h2 {
     grid-template-columns: 1fr;
   }
 
+  .catalog-invite {
+    grid-template-columns: 1fr;
+  }
+
   .resource-card {
     min-height: 108px;
   }
@@ -1121,7 +1232,8 @@ dialog h2 {
 
   .course-grid,
   .steps,
-  .about {
+  .about,
+  .student-work {
     grid-template-columns: 1fr;
   }
 
