@@ -1,0 +1,40 @@
+{
+  "courses": [
+    {
+      "id": "acuarela-botanica-desde-cero",
+      "type": "course",
+      "eyebrow": "Nivel inicial",
+      "title": "Acuarela botánica desde cero",
+      "description": "Una puerta de entrada amable para conocer los materiales, soltar la mano y crear tus primeras flores.",
+      "includes": ["Clases grabadas", "Guía de materiales", "Ejercicios paso a paso"],
+      "priceArs": 35000,
+      "priceUsd": 30,
+      "image": "images/curso-peonias.webp",
+      "imageAlt": "Estudio en acuarela de una peonía rosa con muestras de color"
+    },
+    {
+      "id": "hojas-luz-y-transparencias",
+      "type": "course",
+      "eyebrow": "Nivel intermedio",
+      "title": "Hojas, luz y transparencias",
+      "description": "Capas, verdes y pintura en negativo para dar profundidad y luz a tus composiciones botánicas.",
+      "includes": ["Técnicas de transparencias", "Referencias descargables", "Acceso a tu ritmo"],
+      "priceArs": 42000,
+      "priceUsd": 36,
+      "image": "images/curso-hojas.webp",
+      "imageAlt": "Composición de hojas verdes pintadas en acuarela con luces azules"
+    },
+    {
+      "id": "combo-jardin-botanico",
+      "type": "bundle",
+      "eyebrow": "Combo recomendado",
+      "title": "Jardín botánico",
+      "description": "Una experiencia completa para aprender las bases y seguir explorando flores, hojas y texturas.",
+      "includes": ["2 cursos completos", "Biblioteca de referencias", "Precio especial"],
+      "priceArs": 65000,
+      "priceUsd": 55,
+      "image": "images/combo-botanico.webp",
+      "imageAlt": "Mesa creativa con magnolias, peonías, plumas, pinceles y acuarelas"
+    }
+  ]
+}

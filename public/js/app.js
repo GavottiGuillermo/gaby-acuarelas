@@ -17,22 +17,57 @@ const usd = new Intl.NumberFormat('en-US', {
   currency: 'USD'
 });
 
-function courseCard(course) {
-  const article = document.createElement('article');
-  article.className = `course-card accent-${course.accent}`;
-  article.innerHTML = `
-    <div class="course-image" aria-hidden="true"><span></span><span></span><span></span></div>
-    <div class="course-body">
-      <p class="eyebrow">${course.eyebrow}</p>
-      <h3>${course.title}</h3>
-      <p>${course.description}</p>
-      <ul>${course.includes.map((item) => `<li>${item}</li>`).join('')}</ul>
-      <div class="course-footer">
-        <div><strong>${ars.format(course.priceArs)}</strong><small>o ${usd.format(course.priceUsd)} con PayPal</small></div>
-        <button class="button secondary" type="button">Comprar</button>
-      </div>
-    </div>`;
-  article.querySelector('button').addEventListener('click', () => openPayment(course));
+function createElement(tagName, className, text) {
+  const element = document.createElement(tagName);
+  if (className) element.className = className;
+  if (text) element.textContent = text;
+  return element;
+}
+
+function courseCard(course, index) {
+  const article = createElement('article', 'course-card');
+  article.style.setProperty('--card-delay', `${index * 90}ms`);
+
+  const media = createElement('div', 'course-media');
+  const image = document.createElement('img');
+  image.src = course.image;
+  image.alt = course.imageAlt;
+  image.loading = index === 0 ? 'eager' : 'lazy';
+  image.decoding = 'async';
+  media.appendChild(image);
+
+  const number = createElement('span', 'course-number', String(index + 1).padStart(2, '0'));
+  media.appendChild(number);
+
+  if (course.type === 'bundle') {
+    media.appendChild(createElement('span', 'course-badge', 'Favorito'));
+  }
+
+  const body = createElement('div', 'course-body');
+  body.appendChild(createElement('p', 'eyebrow', course.eyebrow));
+  body.appendChild(createElement('h3', '', course.title));
+  body.appendChild(createElement('p', 'course-description', course.description));
+
+  const includes = createElement('ul', 'course-includes');
+  course.includes.forEach((item) => {
+    includes.appendChild(createElement('li', '', item));
+  });
+  body.appendChild(includes);
+
+  const footer = createElement('div', 'course-footer');
+  const price = createElement('div', 'course-price');
+  price.appendChild(createElement('span', '', 'Valor de referencia'));
+  price.appendChild(createElement('strong', '', ars.format(course.priceArs)));
+  price.appendChild(createElement('small', '', `o ${usd.format(course.priceUsd)} USD`));
+
+  const button = createElement('button', 'card-action', 'Ver propuesta');
+  button.type = 'button';
+  button.setAttribute('aria-label', `Ver propuesta de ${course.title}`);
+  button.addEventListener('click', () => openPayment(course));
+
+  footer.append(price, button);
+  body.appendChild(footer);
+  article.append(media, body);
   return article;
 }
 
@@ -41,47 +76,39 @@ function openPayment(course) {
   dialogCourse.textContent = course.title;
   mpPrice.textContent = ars.format(course.priceArs);
   paypalPrice.textContent = usd.format(course.priceUsd);
-  dialogMessage.textContent = 'El acceso se enviará por correo cuando el pago sea aprobado.';
+  dialogMessage.textContent = 'Esta maqueta no procesa pagos. Los botones permiten presentar cómo se verá la compra.';
   dialog.showModal();
 }
 
 async function loadCatalog() {
   try {
-    const response = await fetch('/api/catalogo');
+    const response = await fetch('catalog.json');
     if (!response.ok) throw new Error('No se pudo cargar el catálogo.');
+
     const data = await response.json();
-    data.courses.forEach((course) => grid.appendChild(courseCard(course)));
+    grid.replaceChildren(...data.courses.map(courseCard));
+    grid.setAttribute('aria-busy', 'false');
   } catch (error) {
-    grid.innerHTML = `<p class="error">${error.message} Intentá nuevamente en unos minutos.</p>`;
+    const message = createElement('p', 'error', `${error.message} Intentá nuevamente en unos minutos.`);
+    grid.replaceChildren(message);
+    grid.setAttribute('aria-busy', 'false');
   }
 }
 
 dialog.querySelector('.dialog-close').addEventListener('click', () => dialog.close());
+
 dialog.addEventListener('click', (event) => {
-  if (event.target === dialog) dialog.close();
+  const bounds = dialog.getBoundingClientRect();
+  const isOutside = event.clientX < bounds.left || event.clientX > bounds.right
+    || event.clientY < bounds.top || event.clientY > bounds.bottom;
+  if (isOutside) dialog.close();
 });
 
 dialog.querySelectorAll('[data-provider]').forEach((button) => {
-  button.addEventListener('click', async () => {
+  button.addEventListener('click', () => {
     if (!selectedCourse) return;
-    const provider = button.dataset.provider;
-    button.disabled = true;
-    dialogMessage.textContent = 'Preparando el pago…';
-
-    try {
-      const response = await fetch(`/api/checkout/${provider}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ courseId: selectedCourse.id })
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'No fue posible iniciar el pago.');
-      window.location.assign(data.checkoutUrl);
-    } catch (error) {
-      dialogMessage.textContent = error.message;
-    } finally {
-      button.disabled = false;
-    }
+    const label = button.dataset.provider === 'mercadopago' ? 'Mercado Pago' : 'PayPal';
+    dialogMessage.textContent = `${label} se habilitará en la versión transaccional. Por ahora, esta experiencia es sólo visual.`;
   });
 });
 

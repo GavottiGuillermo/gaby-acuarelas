@@ -4,16 +4,18 @@ Tienda online de cursos y combos de acuarela. El proyecto parte de la arquitectu
 
 ## Estado
 
-La primera versión incluye:
+La maqueta preliminar incluye:
 
-- portada responsive inspirada en una estética de acuarela;
-- catálogo servido desde el backend;
+- portada responsive con una identidad de acuarela botánica;
+- ilustraciones originales generadas para esta presentación;
+- catálogo estático compatible con GitHub Pages y reutilizado por Express;
 - precios independientes en ARS y USD;
-- selector de Mercado Pago o PayPal;
+- presentación del futuro selector de Mercado Pago o PayPal;
+- enlaces a recursos gratuitos que Gaby ya comparte con su comunidad;
 - variables preparadas para pagos, correo y Dropbox;
-- configuración inicial para Render.
+- configuración inicial para Render y publicación automática en GitHub Pages.
 
-Los cursos y precios incluidos son datos de demostración. El checkout responde como no disponible hasta implementar y probar las credenciales sandbox.
+Los nombres, contenidos y precios son datos de demostración. La versión de GitHub Pages es únicamente visual y no procesa pagos. El checkout del servidor responde como no disponible hasta implementar y probar las credenciales sandbox.
 
 ## Desarrollo local
 
@@ -24,6 +26,17 @@ npm run dev
 ```
 
 Abrir `http://localhost:3000`.
+
+## Demo en GitHub Pages
+
+El workflow `.github/workflows/pages.yml` publica la carpeta `public` cuando se envían cambios a `main` o `master`.
+
+1. Subir el repositorio a GitHub.
+2. Abrir **Settings → Pages**.
+3. En **Build and deployment**, elegir **GitHub Actions**.
+4. Ejecutar el workflow **Publicar demo en GitHub Pages** o enviar un cambio a la rama principal.
+
+Todos los recursos usan rutas relativas, por lo que la demo funciona aunque GitHub Pages la publique dentro de una ruta con el nombre del repositorio.
 
 ## Próximas integraciones
 

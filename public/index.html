@@ -3,109 +3,198 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Cursos de acuarela de Gaby para aprender y crear a tu ritmo.">
-    <title>Gaby Acuarelas | Cursos online</title>
+    <meta name="description" content="Cursos de acuarela botánica de Gaby para pintar, aprender y disfrutar a tu ritmo.">
+    <meta name="theme-color" content="#f8f3e9">
+    <title>Gaby Acuarelas | Pintar, aprender y disfrutar</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
   </head>
   <body>
+    <a class="skip-link" href="#contenido">Ir al contenido</a>
+
     <header class="site-header">
       <a class="brand" href="#inicio" aria-label="Gaby Acuarelas, inicio">
-        <span class="brand-mark">G</span>
-        <span>Gaby Acuarelas</span>
+        <span class="brand-mark" aria-hidden="true">g</span>
+        <span class="brand-copy"><strong>Gaby</strong><small>Acuarelas</small></span>
       </a>
       <nav aria-label="Navegación principal">
         <a href="#cursos">Cursos</a>
-        <a href="#como-funciona">Cómo funciona</a>
+        <a href="#recursos">Recursos gratis</a>
         <a href="#sobre-gaby">Sobre Gaby</a>
+        <a href="#preguntas">Preguntas</a>
       </nav>
-      <a class="instagram-link" href="https://www.instagram.com/gabyacuarelas" target="_blank" rel="noreferrer">Instagram</a>
+      <a class="header-cta" href="#cursos">Quiero pintar</a>
     </header>
 
-    <main>
+    <main id="contenido">
       <section class="hero" id="inicio">
-        <div class="wash wash-one"></div>
-        <div class="wash wash-two"></div>
         <div class="hero-copy">
-          <p class="kicker">Cursos online de acuarela</p>
-          <h1>Dejá que el agua y el color te sorprendan.</h1>
-          <p class="hero-text">Aprendé técnicas de acuarela paso a paso, desde casa y a tu propio ritmo.</p>
+          <p class="kicker">Acuarela botánica · Cursos online</p>
+          <h1>Pintar, aprender <em>y disfrutar.</em></h1>
+          <p class="hero-text">Clases cercanas y paso a paso para amigarte con el agua, descubrir el color y crear flores que se sientan tuyas.</p>
           <div class="hero-actions">
-            <a class="button primary" href="#cursos">Descubrir los cursos</a>
-            <a class="text-link" href="#como-funciona">¿Cómo funciona?</a>
+            <a class="button primary" href="#cursos">Conocé los cursos <span aria-hidden="true">↘</span></a>
+            <a class="text-link" href="#recursos">Empezá con una clase gratis</a>
           </div>
+          <p class="hero-note"><span aria-hidden="true">✦</span> No necesitás experiencia previa. Sólo ganas de probar.</p>
         </div>
-        <div class="art-card" aria-hidden="true">
-          <div class="paper">
-            <span class="petal petal-a"></span>
-            <span class="petal petal-b"></span>
-            <span class="petal petal-c"></span>
-            <span class="stem"></span>
-          </div>
-          <p>Crear también es aprender a mirar.</p>
+        <div class="hero-art" role="img" aria-label="Acuarelas botánicas, peonías, magnolias, pinceles y paleta sobre papel artesanal"></div>
+      </section>
+
+      <div class="promise-bar" aria-label="Características de los cursos">
+        <span>A tu propio ritmo</span>
+        <span>Desde cualquier lugar</span>
+        <span>Con práctica y disfrute</span>
+      </div>
+
+      <section class="manifesto section">
+        <div class="manifesto-number" aria-hidden="true">01</div>
+        <div>
+          <p class="kicker">Tu espacio creativo</p>
+          <h2>No hace falta “saber dibujar” para empezar.</h2>
         </div>
+        <p>La acuarela también se aprende jugando: observando cómo se mueve el agua, soltando expectativas y celebrando cada pequeña sorpresa del papel.</p>
       </section>
 
       <section class="courses section" id="cursos">
         <div class="section-heading">
           <div>
-            <p class="kicker">Elegí tu experiencia</p>
-            <h2>Cursos y combos</h2>
+            <p class="kicker">Elegí tu camino</p>
+            <h2>Cursos para crecer <em>pincelada a pincelada.</em></h2>
           </div>
-          <p>Clases claras, materiales descargables y acceso para avanzar sin apuro.</p>
+          <p>Esta selección y sus valores son una propuesta preliminar para visualizar la futura tienda.</p>
         </div>
-        <div class="course-grid" id="course-grid" aria-live="polite"></div>
+        <div class="course-grid" id="course-grid" aria-live="polite" aria-busy="true">
+          <p class="loading">Preparando la mesa de trabajo…</p>
+        </div>
       </section>
 
       <section class="how section" id="como-funciona">
         <div class="section-heading compact">
-          <p class="kicker">Simple y directo</p>
-          <h2>Empezá en tres pasos</h2>
+          <p class="kicker light">Una experiencia simple</p>
+          <h2>De la curiosidad <em>a tu primera obra.</em></h2>
         </div>
         <div class="steps">
-          <article><span>01</span><h3>Elegí</h3><p>Encontrá el curso o combo que más te inspire.</p></article>
-          <article><span>02</span><h3>Pagá</h3><p>Usá Mercado Pago en pesos o PayPal en dólares.</p></article>
-          <article><span>03</span><h3>Pintá</h3><p>Recibí el acceso por correo y comenzá a tu ritmo.</p></article>
+          <article>
+            <span>01</span>
+            <h3>Elegí</h3>
+            <p>Encontrá el curso o combo que acompañe tu momento creativo.</p>
+          </article>
+          <article>
+            <span>02</span>
+            <h3>Accedé</h3>
+            <p>Recibí las clases y materiales por correo cuando se confirme tu compra.</p>
+          </article>
+          <article>
+            <span>03</span>
+            <h3>Disfrutá</h3>
+            <p>Avanzá a tu ritmo, repetí cada práctica y descubrí tu propia forma de pintar.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="resources section" id="recursos">
+        <div class="section-heading">
+          <div>
+            <p class="kicker">Para probar hoy</p>
+            <h2>Un primer encuentro <em>con el agua y el color.</em></h2>
+          </div>
+          <p>Recursos que Gaby ya comparte con su comunidad para que puedas empezar sin vueltas.</p>
+        </div>
+        <div class="resource-grid">
+          <a class="resource-card resource-peony" href="https://www.dropbox.com/sh/c6gho0545fjph5b/AAA-5yFiqNNkrx6KnCiBbkZKa?dl=0" target="_blank" rel="noreferrer">
+            <span class="resource-icon" aria-hidden="true">✿</span>
+            <span><small>Descargable</small><strong>Patrón de peonías</strong></span>
+            <span class="resource-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="resource-card resource-leaf" href="https://www.dropbox.com/sh/riqowg0j8f0u3v2/AABUV3FuVm2V3Bs5TcUgKNWca?dl=0" target="_blank" rel="noreferrer">
+            <span class="resource-icon" aria-hidden="true">❧</span>
+            <span><small>Tutorial gratis</small><strong>Ficus Pandurata</strong></span>
+            <span class="resource-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="resource-card resource-video" href="https://youtu.be/ekNpwd11xEk" target="_blank" rel="noreferrer">
+            <span class="resource-icon" aria-hidden="true">▶</span>
+            <span><small>Clase en video</small><strong>Curso inicial de acuarelas</strong></span>
+            <span class="resource-arrow" aria-hidden="true">↗</span>
+          </a>
         </div>
       </section>
 
       <section class="about section" id="sobre-gaby">
-        <div class="portrait-placeholder" aria-hidden="true"><span>G</span></div>
-        <div>
-          <p class="kicker">Sobre Gaby</p>
-          <h2>Una invitación a explorar la acuarela.</h2>
-          <p>Este espacio está pensado para disfrutar el proceso creativo, perderle el miedo al papel en blanco y descubrir una forma personal de pintar.</p>
-          <a class="text-link" href="https://www.instagram.com/gabyacuarelas" target="_blank" rel="noreferrer">Conocé su trabajo en Instagram</a>
+        <div class="about-art" aria-hidden="true">
+          <span>“El agua también sabe el camino.”</span>
+        </div>
+        <div class="about-copy">
+          <p class="kicker">Hola, soy Gaby</p>
+          <h2>Psicóloga, mamá <em>y acuarelista.</em></h2>
+          <p>Durante años pensé que no sabía dibujar. Cuando dejé de buscar la perfección, encontré en la acuarela una forma de crear, respirar y compartir.</p>
+          <p>Hoy acompaño a personas hispanohablantes de todo el mundo a descubrir la acuarela botánica sin importar la edad ni la experiencia.</p>
+          <a class="button outline" href="https://www.instagram.com/gabyacuarelas/" target="_blank" rel="noreferrer">Conoceme en Instagram <span aria-hidden="true">↗</span></a>
         </div>
       </section>
 
-      <section class="faq section">
-        <div class="section-heading compact"><p class="kicker">Preguntas frecuentes</p><h2>Antes de empezar</h2></div>
-        <details><summary>¿Necesito experiencia previa?</summary><p>Cada curso indicará claramente el nivel recomendado y los conocimientos necesarios.</p></details>
-        <details><summary>¿Cómo recibo el curso?</summary><p>Una vez aprobado el pago, recibirás por correo electrónico el enlace de acceso correspondiente.</p></details>
-        <details><summary>¿Qué medios de pago puedo usar?</summary><p>Mercado Pago para pagos en pesos argentinos y PayPal para pagos internacionales en dólares.</p></details>
+      <section class="community-callout section">
+        <p class="kicker light">Una comunidad que pinta</p>
+        <h2>Un ratito para vos.<br><em>Un mundo de color.</em></h2>
+        <p>Inspiración, prácticas, encuentros y ese empujoncito que a veces necesitamos para volver al papel.</p>
+        <a class="button light-button" href="https://linktr.ee/gabyacuarelas" target="_blank" rel="noreferrer">Ver todos los enlaces de Gaby <span aria-hidden="true">↗</span></a>
+      </section>
+
+      <section class="faq section" id="preguntas">
+        <div class="section-heading compact">
+          <p class="kicker">Preguntas frecuentes</p>
+          <h2>Antes de <em>empezar.</em></h2>
+        </div>
+        <div class="faq-list">
+          <details>
+            <summary>¿Necesito experiencia previa?<span aria-hidden="true">＋</span></summary>
+            <p>No. Cada propuesta indica su nivel y los cursos iniciales están pensados para acompañarte desde los materiales y los primeros trazos.</p>
+          </details>
+          <details>
+            <summary>¿Las clases tienen horario?<span aria-hidden="true">＋</span></summary>
+            <p>La propuesta contempla clases grabadas para avanzar a tu propio ritmo y volver a cada práctica todas las veces que quieras.</p>
+          </details>
+          <details>
+            <summary>¿Cómo recibiré el curso?<span aria-hidden="true">＋</span></summary>
+            <p>En la versión final, una vez aprobado el pago recibirás por correo el enlace de acceso y todos los materiales incluidos.</p>
+          </details>
+          <details>
+            <summary>¿Qué medios de pago habrá disponibles?<span aria-hidden="true">＋</span></summary>
+            <p>Mercado Pago para pagos en pesos argentinos y PayPal para pagos internacionales en dólares.</p>
+          </details>
+        </div>
       </section>
     </main>
 
     <footer>
-      <span>© <span id="year"></span> Gaby Acuarelas</span>
-      <span>Hecho con color y paciencia.</span>
+      <a class="brand footer-brand" href="#inicio">
+        <span class="brand-mark" aria-hidden="true">g</span>
+        <span class="brand-copy"><strong>Gaby</strong><small>Acuarelas</small></span>
+      </a>
+      <p>Una invitación a pintar, aprender y disfrutar.</p>
+      <div class="footer-links">
+        <a href="https://www.instagram.com/gabyacuarelas/" target="_blank" rel="noreferrer">Instagram</a>
+        <a href="https://www.youtube.com/channel/UCU07jIoFoo5Y7QbB82ydnBw" target="_blank" rel="noreferrer">YouTube</a>
+        <a href="https://www.pinterest.es/gabyacuarelas/boards/" target="_blank" rel="noreferrer">Pinterest</a>
+      </div>
+      <small>© <span id="year"></span> Gaby Acuarelas · Maqueta preliminar</small>
     </footer>
 
-    <dialog id="payment-dialog">
+    <dialog id="payment-dialog" aria-labelledby="dialog-title">
       <button class="dialog-close" type="button" aria-label="Cerrar">×</button>
-      <p class="kicker">Finalizar compra</p>
-      <h2 id="dialog-title">Elegí cómo pagar</h2>
-      <p id="dialog-course"></p>
-      <div class="payment-options">
-        <button type="button" data-provider="mercadopago"><span>Mercado Pago</span><small id="mp-price"></small></button>
-        <button type="button" data-provider="paypal"><span>PayPal</span><small id="paypal-price"></small></button>
+      <p class="kicker">Vista preliminar</p>
+      <h2 id="dialog-title">Tu próximo curso</h2>
+      <p class="dialog-course" id="dialog-course"></p>
+      <div class="payment-options" aria-label="Medios de pago previstos">
+        <button type="button" data-provider="mercadopago"><span>Mercado Pago<small>Pesos argentinos</small></span><strong id="mp-price"></strong></button>
+        <button type="button" data-provider="paypal"><span>PayPal<small>Dólares estadounidenses</small></span><strong id="paypal-price"></strong></button>
       </div>
-      <p class="dialog-note" id="dialog-message">El acceso se enviará por correo cuando el pago sea aprobado.</p>
+      <p class="dialog-note" id="dialog-message">Esta maqueta no procesa pagos. Los botones permiten presentar cómo se verá la compra.</p>
+      <a class="dialog-instagram" href="https://www.instagram.com/gabyacuarelas/" target="_blank" rel="noreferrer">Consultar a Gaby por Instagram ↗</a>
     </dialog>
 
-    <script src="/js/app.js" defer></script>
+    <script src="js/app.js" defer></script>
   </body>
 </html>
