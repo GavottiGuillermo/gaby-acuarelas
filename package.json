@@ -1,0 +1,19 @@
+{
+  "name": "gaby-acuarelas",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Tienda online de cursos y combos de acuarela.",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "check": "node --check src/server.js && node --check public/js/app.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0"
+  }
+}
