@@ -91,6 +91,7 @@
 - El carrito admite uno o varios productos y permite armar un combo libre.
 - Se comunica que existen promociones por compra múltiple, sin inventar ni aplicar un descuento.
 - El formulario visual solicita nombre, apellido y correo.
+- El carrito mantiene visibles las opciones futuras de PayPal y Mercado Pago. Mercado Pago informa que el importe ARS está pendiente, sin inventar una conversión.
 
 ## D-014 - Valores provisionales del catálogo
 

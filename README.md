@@ -17,7 +17,7 @@ La maqueta preliminar incluye:
 - catálogo real de 40 clases compatible con GitHub Pages y reutilizado por Express;
 - ebook `10 Acuarelas Botánicas - Paso a paso` a USD 5;
 - precios visibles en USD y carrito visual para armar combos libres;
-- presentación del futuro flujo con PayPal, todavía sin cobros;
+- presentación del futuro flujo con PayPal en USD y Mercado Pago en ARS, todavía sin cobros;
 - enlaces a recursos gratuitos que Gaby ya comparte con su comunidad;
 - variables preparadas para pagos, correo y Dropbox;
 - configuración inicial para Render y publicación automática en GitHub Pages.
@@ -52,7 +52,7 @@ Todos los recursos usan rutas relativas, por lo que la demo funciona aunque GitH
 ## Próximas integraciones
 
 1. Revisar la demo estática con Gaby y ajustar las decisiones provisionales.
-2. Crear órdenes de PayPal únicamente desde el servidor; Mercado Pago se agregará cuando existan precios ARS.
+2. Crear órdenes de PayPal y Mercado Pago únicamente desde el servidor; los importes ARS se definirán antes de conectar Mercado Pago.
 3. Validar las notificaciones firmadas de ambos proveedores.
 4. Registrar cada compra aprobada en PostgreSQL.
 5. Enviar el correo transaccional una única vez.

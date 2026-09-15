@@ -12,7 +12,7 @@ Una persona debe poder elegir y pedir uno o más cursos desde la web. Después d
 2. Abre el detalle de un curso, combo o ebook.
 3. Selecciona el producto y comienza el pedido.
 4. Informa nombre, apellido y un correo electrónico válido.
-5. Elige PayPal para USD. Mercado Pago se incorporará cuando existan precios ARS.
+5. Elige PayPal para USD o Mercado Pago para ARS. En la demo ambas opciones son visuales; Mercado Pago no podrá conectarse hasta confirmar los importes ARS.
 6. El servidor obtiene producto, moneda e importe desde su propio catálogo y crea una orden `pending`.
 7. El proveedor procesa el pago.
 8. Un webhook firmado comunica el resultado al servidor.

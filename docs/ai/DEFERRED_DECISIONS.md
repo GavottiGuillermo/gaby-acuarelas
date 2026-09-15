@@ -9,7 +9,7 @@ El 2026-09-15 Guillermo autorizó avanzar entre etapas sin esperar todas las res
 | P-003 | Catálogo | Tratar las 40 clases relevadas como inventario completo para la demo. | Antes de producción |
 | P-004 | Hortensias mágicas | Categoría especial de 2,5 horas, USD 15. | Cuando Ceci confirme precios |
 | P-005 | Hortensias realista | Mantener categoría triple y USD 25, siguiendo la ficha individual. | Cuando Ceci confirme precios |
-| P-006 | Moneda | Mostrar solamente USD. Mercado Pago y ARS quedan fuera de la demo hasta definir importes. | Antes de pagos sandbox |
+| P-006 | Moneda | Mostrar los precios de catálogo solamente en USD. Incluir Mercado Pago como opción visual con el importe ARS expresamente pendiente, sin convertir ni procesar pagos. | Antes de pagos sandbox |
 | P-007 | Combos | Implementar carrito y permitir armar un combo libre. Informar que hay promociones sin calcular descuentos todavía. | Cuando Ceci defina la promoción |
 | P-008 | Datos de compra | Solicitar nombre, apellido y correo, todos obligatorios en el flujo visual. | Etapa 3 |
 | P-009 | Acceso | Mostrar “vigencia a confirmar”; no prometer acceso ilimitado. | Antes de producción |

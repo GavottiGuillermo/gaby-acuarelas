@@ -171,7 +171,7 @@
           <details><summary>¿Necesito experiencia previa?<span>＋</span></summary><p>No. Cada propuesta indica su nivel y las clases de nivel 1 acompañan tus primeros pasos.</p></details>
           <details><summary>¿Puedo elegir varias clases?<span>＋</span></summary><p>Sí. El carrito permite armar un combo libre. Habrá promociones por varias clases, aunque el descuento todavía está por definirse.</p></details>
           <details><summary>¿Cómo recibiré la compra?<span>＋</span></summary><p>En la versión final, después de confirmar el pago recibirás por correo el enlace de acceso. Su vigencia está pendiente de definición.</p></details>
-          <details><summary>¿La página ya procesa pagos?<span>＋</span></summary><p>No. Esta versión es una demo visual. Los precios están expresados en USD y el futuro pago internacional será mediante PayPal.</p></details>
+          <details><summary>¿La página ya procesa pagos?<span>＋</span></summary><p>No. Esta versión es una demo visual. PayPal se prevé para pagos en USD y Mercado Pago para ARS, cuando estén confirmados esos importes.</p></details>
         </div>
       </section>
     </main>
@@ -208,7 +208,16 @@
           <label>Correo electrónico<input name="email" type="email" autocomplete="email" required></label>
         </fieldset>
         <p class="demo-warning"><strong>Demo visual:</strong> no se realizará ningún cobro ni se enviarán estos datos.</p>
-        <button class="button primary cart-submit" type="submit">Continuar con PayPal</button>
+        <div class="payment-actions" aria-label="Opciones de pago previstas">
+          <button class="button primary cart-submit" type="submit" data-payment-provider="paypal">
+            <span>Continuar con PayPal</span>
+            <small>Pago en USD</small>
+          </button>
+          <button class="button payment-secondary cart-submit" type="submit" data-payment-provider="mercadopago">
+            <span>Continuar con Mercado Pago</span>
+            <small>Importe en ARS a confirmar</small>
+          </button>
+        </div>
         <p class="form-status" id="form-status" aria-live="polite"></p>
       </form>
     </dialog>

@@ -109,6 +109,6 @@ Esto confirma el canal y la clase de materiales, pero no define duración del ac
 - Validar la clasificación triple y el precio de `Hortensias realista`.
 - Confirmar las correcciones de `Peced fantasticos` y `Gingko biloba`.
 - Definir la fórmula de promociones; la demo permite armar combos libres sin calcular descuento.
-- Los precios ARS y Mercado Pago quedan para una revisión posterior; la demo muestra solamente USD.
+- La demo muestra precios de catálogo solamente en USD y presenta Mercado Pago como opción futura; el importe ARS queda pendiente y no se calcula por conversión automática.
 - Aportar por curso descripción, contenido exacto, imagen original y enlace o identificador de entrega.
 - Confirmar permiso de publicación y atribución de cada trabajo de alumnas/os de las páginas 13 y 14.

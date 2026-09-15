@@ -36,6 +36,7 @@ Reconstruir la demo de GitHub Pages con el lenguaje visual del ebook, las 40 cla
 - `Hortensias mágicas`: especial, 2,5 horas, USD 15 provisional.
 - `Hortensias realista`: triple, USD 25 provisional.
 - El carrito suma precios de lista. La promoción se anuncia, pero no se calcula.
+- PayPal y Mercado Pago aparecen como alternativas visuales. Mercado Pago no muestra un importe hasta confirmar la lista en ARS.
 - El acceso y su vigencia se muestran como pendientes de confirmación.
 - No se publica el PDF completo del ebook.
 - No se publican trabajos de alumnas/os.
@@ -54,8 +55,11 @@ Reconstruir la demo de GitHub Pages con el lenguaje visual del ebook, las 40 cla
 - Dirección visual del ebook aprobada por Gaby.
 - Catálogo fuente: 14 imágenes y 40 clases.
 - Producto digital aprobado: ebook PDF a USD 5.
-- `npm run check`: etapa 2 activa; 40 clases, 1 ebook, precios USD e imágenes sincronizados.
-- Servidor local: home HTTP 200, API con 41 productos y portada/láminas servidas como recursos locales.
+- `npm run check` (2026-09-15): etapa 2 activa; sintaxis JavaScript válida; 40 clases, 1 ebook, precios USD e imágenes sincronizados.
+- Servidor local (2026-09-15): home, catálogo JSON, CSS y portada del ebook respondieron HTTP 200.
+- Corrección local: el carrito muestra miniatura, título, tipo/nivel/duración, precio y acción para quitar; el acceso al carrito permanece visible mediante el encabezado fijo.
+- Corrección local: hero sin superposición tipográfica, sección del ebook compacta y portada conservando proporción 2:3.
+- Corrección local: selector visual de PayPal (USD) y Mercado Pago (ARS pendiente), ambos identificados como demo sin cobro.
 - La conexión con el navegador integrado no estuvo disponible; quedan pendientes las revisiones visuales por ancho y de interacción real.
 
 ## Regla para cerrar esta etapa

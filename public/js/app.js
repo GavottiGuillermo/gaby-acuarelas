@@ -117,6 +117,7 @@ function toggleCart(productId) {
 
 function renderCart() {
   const selected = state.products.filter((product) => state.cart.has(product.id));
+  document.body.classList.toggle('has-cart', selected.length > 0);
   cartCount.textContent = String(selected.length);
   cartCount.setAttribute('aria-label', `${selected.length} ${selected.length === 1 ? 'producto' : 'productos'}`);
   cartEmpty.hidden = selected.length > 0;
@@ -125,15 +126,26 @@ function renderCart() {
 
   cartItems.replaceChildren(...selected.map((product) => {
     const row = createElement('div', 'cart-item');
+    const thumbnail = createElement('div', 'cart-item-thumbnail');
+    thumbnail.style.backgroundImage = `url("${product.image}")`;
+    thumbnail.style.backgroundPosition = product.imagePosition || 'center';
+    thumbnail.classList.toggle('ebook-thumbnail', product.type === 'ebook');
+    thumbnail.setAttribute('aria-hidden', 'true');
+
     const copy = createElement('div', 'cart-item-copy');
     copy.appendChild(createElement('strong', '', product.title));
-    copy.appendChild(createElement('small', '', product.type === 'ebook' ? 'Ebook PDF' : `${product.levelLabel} · ${product.durationLabel}`));
+    copy.appendChild(createElement('small', '', product.type === 'ebook'
+      ? 'Ebook PDF'
+      : `${product.classTypeLabel} · ${product.levelLabel} · ${product.durationLabel}`));
+
+    const actions = createElement('div', 'cart-item-actions');
     const price = createElement('span', 'cart-item-price', usd.format(product.priceUsd));
     const remove = createElement('button', 'cart-remove', 'Quitar');
     remove.type = 'button';
     remove.setAttribute('aria-label', `Quitar ${product.title}`);
     remove.addEventListener('click', () => toggleCart(product.id));
-    row.append(copy, price, remove);
+    actions.append(price, remove);
+    row.append(thumbnail, copy, actions);
     return row;
   }));
 
@@ -203,7 +215,10 @@ checkoutForm.addEventListener('submit', (event) => {
   event.preventDefault();
   if (state.cart.size === 0) return;
   if (!checkoutForm.reportValidity()) return;
-  formStatus.textContent = 'La selección está lista. En la próxima etapa conectaremos el pedido real con PayPal y los correos.';
+  const provider = event.submitter?.dataset.paymentProvider;
+  formStatus.textContent = provider === 'mercadopago'
+    ? 'La selección está lista. Mercado Pago se habilitará cuando confirmemos los importes en ARS; esta demo no realiza cobros.'
+    : 'La selección está lista. PayPal se conectará en la etapa de pagos sandbox; esta demo no realiza cobros.';
 });
 
 document.querySelector('#year').textContent = new Date().getFullYear();

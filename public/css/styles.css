@@ -23,6 +23,7 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 92px;
 }
 
 body {
@@ -93,8 +94,8 @@ a {
 }
 
 .site-header {
-  position: absolute;
-  inset: 0 0 auto;
+  position: sticky;
+  top: 0;
   z-index: 20;
   min-height: 92px;
   padding: 17px clamp(22px, 5vw, 78px);
@@ -102,7 +103,10 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 28px;
+  background: rgba(253, 251, 245, 0.92);
   border-bottom: 1px solid rgba(14, 73, 59, 0.12);
+  box-shadow: 0 8px 28px rgba(23, 60, 54, 0.05);
+  backdrop-filter: blur(12px);
 }
 
 .brand {
@@ -197,6 +201,12 @@ nav a:focus-visible::after {
   border-radius: 999px;
 }
 
+.has-cart .cart-trigger {
+  background: var(--berry-deep);
+  border-color: var(--berry-deep);
+  box-shadow: 0 8px 24px rgba(125, 35, 68, 0.2);
+}
+
 .hero {
   min-height: 810px;
   display: grid;
@@ -208,7 +218,7 @@ nav a:focus-visible::after {
 .hero-copy {
   position: relative;
   z-index: 2;
-  padding: 175px clamp(38px, 6vw, 100px) 105px clamp(28px, 7vw, 120px);
+  padding: 95px clamp(38px, 6vw, 100px) 105px clamp(28px, 7vw, 120px);
   align-self: center;
 }
 
@@ -239,9 +249,10 @@ nav a:focus-visible::after {
 }
 
 .script-note {
-  margin: 20px 0 -25px 12px;
+  margin: 20px 0 6px 12px;
   color: var(--forest);
-  font: 600 clamp(2.2rem, 4vw, 4rem) var(--script);
+  font: 600 clamp(2rem, 3.5vw, 3.45rem) var(--script);
+  line-height: 0.95;
   transform: rotate(-4deg);
 }
 
@@ -275,6 +286,11 @@ h2 em {
   color: var(--berry);
   font-weight: 500;
   text-transform: none;
+}
+
+h1 em {
+  display: block;
+  margin-top: 0.08em;
 }
 
 .hero-text {
@@ -410,15 +426,16 @@ h2 em {
 
 .ebook {
   display: grid;
-  grid-template-columns: minmax(330px, 0.8fr) minmax(440px, 1.2fr);
+  grid-template-columns: minmax(250px, 0.65fr) minmax(480px, 1.35fr);
   align-items: center;
-  gap: clamp(55px, 9vw, 140px);
+  gap: clamp(48px, 7vw, 110px);
+  padding-block: 78px;
   background: linear-gradient(135deg, #ead8d6, #f7eee7 58%, #e4ebdf);
 }
 
 .ebook-cover-wrap {
   position: relative;
-  max-width: 470px;
+  width: min(100%, 330px);
   margin-inline: auto;
   padding: 15px;
   background: rgba(255, 255, 255, 0.72);
@@ -428,6 +445,9 @@ h2 em {
 
 .ebook-cover-wrap img {
   width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 3;
+  object-fit: contain;
 }
 
 .tape {
@@ -1030,6 +1050,7 @@ footer > small {
   background: var(--paper);
   border: 0;
   box-shadow: -30px 0 90px rgba(8, 47, 41, 0.27);
+  overflow-y: auto;
 }
 
 .cart-dialog[open] {
@@ -1067,16 +1088,31 @@ footer > small {
 }
 
 .cart-items {
-  overflow-y: auto;
+  flex: 0 0 auto;
+  overflow: visible;
 }
 
 .cart-item {
   padding: 16px 2px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: 58px minmax(0, 1fr) auto;
   align-items: center;
   gap: 15px;
   border-bottom: 1px solid var(--line);
+}
+
+.cart-item-thumbnail {
+  width: 58px;
+  aspect-ratio: 4 / 5;
+  background-color: var(--paper-deep);
+  background-repeat: no-repeat;
+  background-size: 265% auto;
+  border: 1px solid var(--line);
+}
+
+.cart-item-thumbnail.ebook-thumbnail {
+  background-position: center !important;
+  background-size: cover;
 }
 
 .cart-item-copy {
@@ -1098,6 +1134,12 @@ footer > small {
 
 .cart-item-price {
   font: 600 1.15rem var(--serif);
+}
+
+.cart-item-actions {
+  display: grid;
+  justify-items: end;
+  gap: 4px;
 }
 
 .cart-remove {
@@ -1198,6 +1240,32 @@ footer > small {
 
 .cart-submit {
   width: 100%;
+  min-height: 58px;
+  display: grid;
+  gap: 1px;
+  line-height: 1.2;
+}
+
+.cart-submit small {
+  font-size: 0.58rem;
+  font-weight: 500;
+  opacity: 0.82;
+}
+
+.payment-actions {
+  display: grid;
+  gap: 9px;
+}
+
+.button.payment-secondary {
+  color: var(--forest);
+  background: transparent;
+  border-color: var(--forest);
+}
+
+.button.payment-secondary:hover {
+  color: white;
+  background: var(--forest);
 }
 
 .form-status {
@@ -1263,7 +1331,6 @@ footer > small {
 
   .hero {
     min-height: auto;
-    padding-top: 76px;
     display: flex;
     flex-direction: column;
   }
@@ -1322,7 +1389,7 @@ footer > small {
   }
 
   .ebook-cover-wrap {
-    max-width: 410px;
+    width: min(100%, 310px);
   }
 
   .section-heading {
@@ -1441,11 +1508,11 @@ footer > small {
   }
 
   .cart-item {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: 52px minmax(0, 1fr) auto;
   }
 
-  .cart-remove {
-    grid-column: 2;
+  .cart-item-thumbnail {
+    width: 52px;
   }
 }
 
