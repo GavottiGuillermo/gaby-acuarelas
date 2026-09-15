@@ -1,0 +1,518 @@
+{
+  "schemaVersion": 1,
+  "status": "approved-for-static-preview-with-deferrals",
+  "source": {
+    "kind": "canva-png-export",
+    "pagesReceived": 14,
+    "pagesReviewed": 14,
+    "courseCount": 40,
+    "reviewedAt": "2026-09-14"
+  },
+  "pricing": {
+    "currency": "USD",
+    "rules": [
+      {
+        "classType": "simple",
+        "durationLabel": "de 1,5 a 2 horas",
+        "price": 12
+      },
+      {
+        "classType": "double",
+        "durationLabel": "de 3 a 4 horas",
+        "price": 18
+      },
+      {
+        "classType": "triple",
+        "durationLabel": "más de 5 horas",
+        "price": 25
+      }
+    ],
+    "arsPricesAvailable": false,
+    "multiClassPromotionDefined": false,
+    "promotionMessagingAllowed": true
+  },
+  "levels": [
+    {
+      "number": 1,
+      "label": "Desde cero",
+      "description": "Apto para quienes están dando sus primeros pasos en acuarela."
+    },
+    {
+      "number": 2,
+      "label": "Principiante",
+      "description": "Requiere algo de experiencia en el manejo de agua y pincel."
+    },
+    {
+      "number": 3,
+      "label": "Intermedio",
+      "description": "Requiere experiencia previa básica en acuarela botánica."
+    }
+  ],
+  "delivery": {
+    "channel": "email",
+    "description": "La alumna recibe por correo un enlace desde el que descarga los materiales de la clase.",
+    "possibleContents": [
+      "videos",
+      "fotos de guía",
+      "patrones cuando sean necesarios",
+      "videos de práctica cuando sean necesarios"
+    ],
+    "sourcePage": 12
+  },
+  "digitalProducts": [
+    {
+      "id": "ebook-10-acuarelas-botanicas",
+      "productType": "ebook",
+      "title": "10 Acuarelas Botánicas",
+      "subtitle": "Paso a paso",
+      "format": "PDF",
+      "pageCount": 17,
+      "priceUsd": 5,
+      "priceArs": null,
+      "commercialApproval": {
+        "status": "approved",
+        "approvedBy": "Gaby",
+        "reportedBy": "Guillermo",
+        "date": "2026-09-14"
+      },
+      "source": {
+        "fileName": "Libro acuarelas iniciarse Gabyacuarelas.pdf",
+        "usage": "Referencia de producto y futura entrega protegida; no publicar el PDF en el repositorio."
+      },
+      "delivery": {
+        "channel": "email-after-approved-payment",
+        "publicFileAllowed": false
+      },
+      "needsConfirmation": [
+        "Alcance final de la licencia personal.",
+        "Duración o vigencia del enlace de descarga."
+      ]
+    }
+  ],
+  "courses": [
+    {
+      "id": "peonias-pimpollo",
+      "title": "Peonías pimpollo",
+      "sourcePage": 2,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "explicit",
+      "levels": [1],
+      "priceUsd": 12
+    },
+    {
+      "id": "peonia-en-flor",
+      "title": "Peonía en flor",
+      "sourcePage": 2,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "explicit",
+      "levels": [3],
+      "priceUsd": 12
+    },
+    {
+      "id": "flor-pastel",
+      "title": "Flor pastel",
+      "sourcePage": 2,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "explicit",
+      "levels": [2],
+      "priceUsd": 12
+    },
+    {
+      "id": "hortensias",
+      "title": "Hortensias",
+      "sourcePage": 2,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "explicit",
+      "levels": [2],
+      "priceUsd": 12
+    },
+    {
+      "id": "limon-en-rama",
+      "title": "Limón en rama",
+      "sourcePage": 3,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "explicit",
+      "levels": [1],
+      "priceUsd": 12
+    },
+    {
+      "id": "limon-en-mitades",
+      "title": "Limón en mitades",
+      "sourcePage": 3,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "explicit",
+      "levels": [2],
+      "priceUsd": 12
+    },
+    {
+      "id": "ave-del-paraiso",
+      "title": "Ave del paraíso",
+      "sourcePage": 3,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "explicit",
+      "levels": [2],
+      "priceUsd": 12
+    },
+    {
+      "id": "limones-enteros",
+      "title": "Limones enteros",
+      "sourcePage": 3,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "explicit",
+      "levels": [2],
+      "priceUsd": 12
+    },
+    {
+      "id": "negativos",
+      "title": "Negativos",
+      "sourcePage": 4,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "explicit",
+      "levels": [1],
+      "priceUsd": 12
+    },
+    {
+      "id": "gingko-biloba",
+      "title": "Gingko biloba",
+      "sourcePage": 4,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "inferred-from-duration",
+      "levels": [1],
+      "priceUsd": 12,
+      "needsConfirmation": ["Confirmar si el título comercial conserva 'Gingko' o se corrige a 'Ginkgo'."]
+    },
+    {
+      "id": "hojas-tropicales",
+      "title": "Hojas tropicales",
+      "sourcePage": 4,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "inferred-from-duration",
+      "levels": [1],
+      "priceUsd": 12
+    },
+    {
+      "id": "suculentas-tecnica-mixta",
+      "title": "Suculentas técnica mixta",
+      "sourcePage": 4,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "inferred-from-duration",
+      "levels": [1],
+      "priceUsd": 12
+    },
+    {
+      "id": "girasol-inicial",
+      "title": "Girasol inicial",
+      "sourcePage": 5,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "inferred-from-duration",
+      "levels": [1],
+      "priceUsd": 12
+    },
+    {
+      "id": "girasol-mixto",
+      "title": "Girasol mixto",
+      "sourcePage": 5,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "inferred-from-duration",
+      "levels": [2],
+      "priceUsd": 12
+    },
+    {
+      "id": "ilustracion-en-tinta",
+      "title": "Ilustración en tinta",
+      "sourcePage": 5,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "inferred-from-duration",
+      "levels": [1],
+      "priceUsd": 12
+    },
+    {
+      "id": "caladium",
+      "title": "Caladium",
+      "sourcePage": 5,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "inferred-from-duration",
+      "levels": [1],
+      "priceUsd": 12
+    },
+    {
+      "id": "clase-inicial-2",
+      "title": "Clase inicial 2",
+      "sourcePage": 6,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "inferred-from-duration",
+      "levels": [1],
+      "priceUsd": 12
+    },
+    {
+      "id": "clase-inicial-luces",
+      "title": "Clase inicial luces",
+      "sourcePage": 6,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "inferred-from-duration",
+      "levels": [1],
+      "priceUsd": 12
+    },
+    {
+      "id": "clase-inicial-frutos",
+      "title": "Clase inicial frutos",
+      "sourcePage": 6,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "inferred-from-duration",
+      "levels": [1],
+      "priceUsd": 12
+    },
+    {
+      "id": "cactus-en-flor",
+      "title": "Cactus en flor",
+      "sourcePage": 6,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "inferred-from-duration",
+      "levels": [1],
+      "priceUsd": 12
+    },
+    {
+      "id": "clinica-de-rosas",
+      "title": "Clínica de rosas",
+      "sourcePage": 7,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "inferred-from-duration",
+      "levels": [2],
+      "priceUsd": 12
+    },
+    {
+      "id": "tulipanes",
+      "title": "Tulipanes",
+      "sourcePage": 7,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "inferred-from-duration",
+      "levels": [3],
+      "priceUsd": 12
+    },
+    {
+      "id": "flores-libres",
+      "title": "Flores libres",
+      "sourcePage": 7,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "inferred-from-duration",
+      "levels": [1],
+      "priceUsd": 12
+    },
+    {
+      "id": "petalos",
+      "title": "Pétalos",
+      "sourcePage": 7,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "inferred-from-duration",
+      "levels": [3],
+      "priceUsd": 12
+    },
+    {
+      "id": "postales-polaroid",
+      "title": "Postales Polaroid",
+      "sourcePage": 8,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "inferred-from-duration",
+      "levels": [1],
+      "priceUsd": 12
+    },
+    {
+      "id": "flores-transparentes",
+      "title": "Flores transparentes",
+      "sourcePage": 8,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "inferred-from-duration",
+      "levels": [1],
+      "priceUsd": 12
+    },
+    {
+      "id": "herbario-botanico",
+      "title": "Herbario botánico",
+      "sourcePage": 8,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "inferred-from-duration",
+      "levels": [1],
+      "priceUsd": 12
+    },
+    {
+      "id": "flores-tropicales",
+      "title": "Flores tropicales",
+      "sourcePage": 8,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "inferred-from-duration",
+      "levels": [1],
+      "priceUsd": 12
+    },
+    {
+      "id": "peces-fantasticos",
+      "title": "Peces fantásticos",
+      "sourceTitle": "Peced fantasticos",
+      "sourcePage": 9,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "inferred-from-duration",
+      "levels": [2],
+      "priceUsd": 12,
+      "needsConfirmation": ["Confirmar que el título de fuente 'Peced fantasticos' corresponde a 'Peces fantásticos'."]
+    },
+    {
+      "id": "peces-koi",
+      "title": "Peces koi",
+      "sourcePage": 9,
+      "durationMinutes": 90,
+      "classType": "simple",
+      "classTypeEvidence": "inferred-from-duration",
+      "levels": [1],
+      "priceUsd": 12
+    },
+    {
+      "id": "magnolia",
+      "title": "Magnolia",
+      "sourcePage": 9,
+      "durationMinutes": 120,
+      "classType": "simple",
+      "classTypeEvidence": "inferred-from-duration",
+      "levels": [1],
+      "priceUsd": 12
+    },
+    {
+      "id": "hortensias-magicas",
+      "title": "Hortensias mágicas",
+      "sourcePage": 9,
+      "durationMinutes": 150,
+      "classType": "special",
+      "classTypeEvidence": "provisional-user-authorized",
+      "levels": [2, 3],
+      "priceUsd": 15,
+      "needsConfirmation": ["Valor provisional autorizado por Guillermo hasta recibir confirmación de Ceci."]
+    },
+    {
+      "id": "hoja-monstera",
+      "title": "Hoja Monstera",
+      "sourcePage": 10,
+      "durationMinutes": 180,
+      "classType": "double",
+      "classTypeEvidence": "explicit",
+      "levels": [2],
+      "priceUsd": 18
+    },
+    {
+      "id": "rosas-completas",
+      "title": "Rosas completas",
+      "sourcePage": 10,
+      "durationMinutes": 180,
+      "classType": "double",
+      "classTypeEvidence": "explicit",
+      "levels": [3],
+      "priceUsd": 18
+    },
+    {
+      "id": "dalias",
+      "title": "Dalias",
+      "sourcePage": 10,
+      "durationMinutes": 180,
+      "classType": "double",
+      "classTypeEvidence": "explicit",
+      "levels": [3],
+      "priceUsd": 18
+    },
+    {
+      "id": "hortensias-realista",
+      "title": "Hortensias realista",
+      "sourcePage": 10,
+      "durationMinutes": 300,
+      "classType": "triple",
+      "classTypeEvidence": "explicit",
+      "levels": [3],
+      "priceUsd": 25,
+      "needsConfirmation": ["La ficha dice 5 horas y clase triple, mientras la regla general reserva triple para más de 5 horas."]
+    },
+    {
+      "id": "rosa-realista-xl",
+      "title": "Rosa realista XL",
+      "sourcePage": 11,
+      "durationMinutes": 180,
+      "classType": "double",
+      "classTypeEvidence": "explicit",
+      "levels": [2],
+      "priceUsd": 18
+    },
+    {
+      "id": "flores-blancas",
+      "title": "Flores blancas",
+      "sourcePage": 11,
+      "durationMinutes": 120,
+      "classType": "simple",
+      "classTypeEvidence": "explicit",
+      "levels": [2],
+      "priceUsd": 12
+    },
+    {
+      "id": "fresias",
+      "title": "Fresias",
+      "sourcePage": 11,
+      "durationMinutes": 180,
+      "classType": "double",
+      "classTypeEvidence": "explicit",
+      "levels": [2],
+      "priceUsd": 18
+    },
+    {
+      "id": "astromelias",
+      "title": "Astromelias",
+      "sourcePage": 11,
+      "durationMinutes": 180,
+      "classType": "double",
+      "classTypeEvidence": "explicit",
+      "levels": [1],
+      "priceUsd": 18
+    }
+  ],
+  "storefront": {
+    "currency": "USD",
+    "purchaseMode": "cart",
+    "requiredCustomerFields": ["firstName", "lastName", "email"],
+    "freeFormBundlesEnabled": true,
+    "promotion": {
+      "messageEnabled": true,
+      "discountCalculationEnabled": false
+    },
+    "adminSaleEmailRequired": true,
+    "accessDuration": "to-be-confirmed",
+    "studentWorkVisible": false
+  },
+  "openCommercialQuestions": [
+    "Fórmula de promociones al comprar más de una clase.",
+    "Vigencia definitiva de los accesos y política de soporte.",
+    "Descripciones y archivos originales de mayor resolución.",
+    "Condiciones finales de licencia y descarga del ebook."
+  ]
+}

@@ -25,6 +25,8 @@ jobs:
     steps:
       - name: Descargar repositorio
         uses: actions/checkout@v4
+      - name: Validar compuerta de etapas
+        run: npm run check
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
       - name: Preparar sitio estático

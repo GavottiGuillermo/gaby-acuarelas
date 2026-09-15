@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "activeStage": 2,
+  "stages": [
+    {
+      "number": 1,
+      "slug": "identidad-contenido-activos",
+      "status": "COMPLETE",
+      "humanApproval": true
+    },
+    {
+      "number": 2,
+      "slug": "tienda-estatica",
+      "status": "ACTIVE",
+      "humanApproval": false
+    },
+    {
+      "number": 3,
+      "slug": "ordenes-postgresql",
+      "status": "BLOCKED",
+      "humanApproval": false
+    },
+    {
+      "number": 4,
+      "slug": "pagos-sandbox",
+      "status": "BLOCKED",
+      "humanApproval": false
+    },
+    {
+      "number": 5,
+      "slug": "correo-entrega",
+      "status": "BLOCKED",
+      "humanApproval": false
+    },
+    {
+      "number": 6,
+      "slug": "preparacion-productiva",
+      "status": "BLOCKED",
+      "humanApproval": false
+    },
+    {
+      "number": 7,
+      "slug": "lanzamiento-estabilizacion",
+      "status": "BLOCKED",
+      "humanApproval": false
+    }
+  ]
+}

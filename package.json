@@ -10,7 +10,10 @@
   "scripts": {
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
-    "check": "node --check src/server.js && node --check public/js/app.js"
+    "gate": "node scripts/check-stage-gate.js",
+    "catalog:build": "node scripts/build-public-catalog.js",
+    "catalog:check": "node scripts/check-course-catalog.js",
+    "check": "node --check src/server.js && node --check public/js/app.js && node --check scripts/check-stage-gate.js && node --check scripts/build-public-catalog.js && node --check scripts/check-course-catalog.js && node scripts/check-stage-gate.js && node scripts/check-course-catalog.js"
   },
   "dependencies": {
     "dotenv": "^17.2.2",

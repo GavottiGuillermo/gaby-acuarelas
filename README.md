@@ -2,20 +2,31 @@
 
 Tienda online de cursos y combos de acuarela. El proyecto parte de la arquitectura comprobada de Capri Store (Node.js + Express en un único servicio), con una identidad visual y datos completamente independientes.
 
+## Desarrollo por etapas
+
+El trabajo asistido por IA sigue etapas controladas. Antes de modificar el proyecto se deben leer `AGENTS.md` y los documentos de `docs/ai/`.
+
+La única fuente de verdad sobre el trabajo habilitado es [`docs/ai/CURRENT_STAGE.md`](docs/ai/CURRENT_STAGE.md). Los detalles no críticos pueden quedar diferidos cuando el usuario los autoriza y se documentan con una decisión provisional.
+
 ## Estado
 
 La maqueta preliminar incluye:
 
 - portada responsive con una identidad de acuarela botánica;
 - ilustraciones originales generadas para esta presentación;
-- catálogo estático compatible con GitHub Pages y reutilizado por Express;
-- precios independientes en ARS y USD;
-- presentación del futuro selector de Mercado Pago o PayPal;
+- catálogo real de 40 clases compatible con GitHub Pages y reutilizado por Express;
+- ebook `10 Acuarelas Botánicas - Paso a paso` a USD 5;
+- precios visibles en USD y carrito visual para armar combos libres;
+- presentación del futuro flujo con PayPal, todavía sin cobros;
 - enlaces a recursos gratuitos que Gaby ya comparte con su comunidad;
 - variables preparadas para pagos, correo y Dropbox;
 - configuración inicial para Render y publicación automática en GitHub Pages.
 
-Los nombres, contenidos y precios son datos de demostración. La versión de GitHub Pages es únicamente visual y no procesa pagos. El checkout del servidor responde como no disponible hasta implementar y probar las credenciales sandbox.
+Los nombres, niveles y precios provienen del catálogo aportado, salvo las decisiones provisionales identificadas en `docs/ai/DEFERRED_DECISIONS.md`. La versión de GitHub Pages es únicamente visual y no procesa pagos. El checkout del servidor responde como no disponible hasta implementar y probar las credenciales sandbox.
+
+El catálogo real recibido está transcripto en `docs/ai/COURSE_CATALOG.md` y `docs/ai/course-catalog.json`, y alimenta la demo estática. Las imágenes de las láminas, el precio especial y la promoción sin descuento son provisionales.
+
+Gaby aprobó la dirección visual basada en el ebook y su venta como producto digital a USD 5. El PDF completo no se publica en GitHub Pages: la entrega futura deberá hacerse mediante un enlace protegido después del pago.
 
 ## Desarrollo local
 
@@ -40,8 +51,8 @@ Todos los recursos usan rutas relativas, por lo que la demo funciona aunque GitH
 
 ## Próximas integraciones
 
-1. Reemplazar el catálogo de ejemplo por los cursos y combos reales.
-2. Crear órdenes de Mercado Pago y PayPal únicamente desde el servidor.
+1. Revisar la demo estática con Gaby y ajustar las decisiones provisionales.
+2. Crear órdenes de PayPal únicamente desde el servidor; Mercado Pago se agregará cuando existan precios ARS.
 3. Validar las notificaciones firmadas de ambos proveedores.
 4. Registrar cada compra aprobada en PostgreSQL.
 5. Enviar el correo transaccional una única vez.

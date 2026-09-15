@@ -1,3 +1,3 @@
-// El catálogo público es la única fuente de datos durante la etapa de maqueta.
-// Así, Express y GitHub Pages muestran exactamente los mismos cursos.
+// Este archivo público se genera desde la matriz controlada de docs/ai.
+// Así, Express y GitHub Pages muestran exactamente los mismos productos.
 module.exports = require('../public/catalog.json').courses;

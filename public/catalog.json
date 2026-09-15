@@ -1,40 +1,1005 @@
 {
+  "schemaVersion": 1,
+  "currency": "USD",
+  "purchaseMode": "cart",
+  "promotion": {
+    "messageEnabled": true,
+    "discountCalculationEnabled": false
+  },
+  "requiredCustomerFields": [
+    "firstName",
+    "lastName",
+    "email"
+  ],
+  "generatedFrom": "docs/ai/course-catalog.json",
   "courses": [
     {
-      "id": "acuarela-botanica-desde-cero",
+      "id": "peonias-pimpollo",
       "type": "course",
-      "eyebrow": "Nivel inicial",
-      "title": "Acuarela botánica desde cero",
-      "description": "Una puerta de entrada amable para conocer los materiales, soltar la mano y crear tus primeras flores.",
-      "includes": ["Clases grabadas", "Guía de materiales", "Ejercicios paso a paso"],
-      "priceArs": 35000,
-      "priceUsd": 30,
-      "image": "images/curso-peonias.webp",
-      "imageAlt": "Estudio en acuarela de una peonía rosa con muestras de color"
+      "title": "Peonías pimpollo",
+      "level": [
+        1
+      ],
+      "levelLabel": "Nivel 1",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá peonías pimpollo junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-2.png",
+      "imagePosition": "16% 14%",
+      "imageAlt": "Acuarela de la clase Peonías pimpollo"
     },
     {
-      "id": "hojas-luz-y-transparencias",
+      "id": "peonia-en-flor",
       "type": "course",
-      "eyebrow": "Nivel intermedio",
-      "title": "Hojas, luz y transparencias",
-      "description": "Capas, verdes y pintura en negativo para dar profundidad y luz a tus composiciones botánicas.",
-      "includes": ["Técnicas de transparencias", "Referencias descargables", "Acceso a tu ritmo"],
-      "priceArs": 42000,
-      "priceUsd": 36,
-      "image": "images/curso-hojas.webp",
-      "imageAlt": "Composición de hojas verdes pintadas en acuarela con luces azules"
+      "title": "Peonía en flor",
+      "level": [
+        3
+      ],
+      "levelLabel": "Nivel 3",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá peonía en flor junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-2.png",
+      "imagePosition": "84% 14%",
+      "imageAlt": "Acuarela de la clase Peonía en flor"
     },
     {
-      "id": "combo-jardin-botanico",
-      "type": "bundle",
-      "eyebrow": "Combo recomendado",
-      "title": "Jardín botánico",
-      "description": "Una experiencia completa para aprender las bases y seguir explorando flores, hojas y texturas.",
-      "includes": ["2 cursos completos", "Biblioteca de referencias", "Precio especial"],
-      "priceArs": 65000,
-      "priceUsd": 55,
-      "image": "images/combo-botanico.webp",
-      "imageAlt": "Mesa creativa con magnolias, peonías, plumas, pinceles y acuarelas"
+      "id": "flor-pastel",
+      "type": "course",
+      "title": "Flor pastel",
+      "level": [
+        2
+      ],
+      "levelLabel": "Nivel 2",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá flor pastel junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-2.png",
+      "imagePosition": "16% 70%",
+      "imageAlt": "Acuarela de la clase Flor pastel"
+    },
+    {
+      "id": "hortensias",
+      "type": "course",
+      "title": "Hortensias",
+      "level": [
+        2
+      ],
+      "levelLabel": "Nivel 2",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá hortensias junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-2.png",
+      "imagePosition": "84% 70%",
+      "imageAlt": "Acuarela de la clase Hortensias"
+    },
+    {
+      "id": "limon-en-rama",
+      "type": "course",
+      "title": "Limón en rama",
+      "level": [
+        1
+      ],
+      "levelLabel": "Nivel 1",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá limón en rama junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-3.png",
+      "imagePosition": "16% 14%",
+      "imageAlt": "Acuarela de la clase Limón en rama"
+    },
+    {
+      "id": "limon-en-mitades",
+      "type": "course",
+      "title": "Limón en mitades",
+      "level": [
+        2
+      ],
+      "levelLabel": "Nivel 2",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá limón en mitades junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-3.png",
+      "imagePosition": "84% 14%",
+      "imageAlt": "Acuarela de la clase Limón en mitades"
+    },
+    {
+      "id": "ave-del-paraiso",
+      "type": "course",
+      "title": "Ave del paraíso",
+      "level": [
+        2
+      ],
+      "levelLabel": "Nivel 2",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá ave del paraíso junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-3.png",
+      "imagePosition": "16% 70%",
+      "imageAlt": "Acuarela de la clase Ave del paraíso"
+    },
+    {
+      "id": "limones-enteros",
+      "type": "course",
+      "title": "Limones enteros",
+      "level": [
+        2
+      ],
+      "levelLabel": "Nivel 2",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá limones enteros junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-3.png",
+      "imagePosition": "84% 70%",
+      "imageAlt": "Acuarela de la clase Limones enteros"
+    },
+    {
+      "id": "negativos",
+      "type": "course",
+      "title": "Negativos",
+      "level": [
+        1
+      ],
+      "levelLabel": "Nivel 1",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá negativos junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-4.png",
+      "imagePosition": "16% 14%",
+      "imageAlt": "Acuarela de la clase Negativos"
+    },
+    {
+      "id": "gingko-biloba",
+      "type": "course",
+      "title": "Gingko biloba",
+      "level": [
+        1
+      ],
+      "levelLabel": "Nivel 1",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá gingko biloba junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-4.png",
+      "imagePosition": "84% 14%",
+      "imageAlt": "Acuarela de la clase Gingko biloba"
+    },
+    {
+      "id": "hojas-tropicales",
+      "type": "course",
+      "title": "Hojas tropicales",
+      "level": [
+        1
+      ],
+      "levelLabel": "Nivel 1",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá hojas tropicales junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-4.png",
+      "imagePosition": "16% 70%",
+      "imageAlt": "Acuarela de la clase Hojas tropicales"
+    },
+    {
+      "id": "suculentas-tecnica-mixta",
+      "type": "course",
+      "title": "Suculentas técnica mixta",
+      "level": [
+        1
+      ],
+      "levelLabel": "Nivel 1",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá suculentas técnica mixta junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-4.png",
+      "imagePosition": "84% 70%",
+      "imageAlt": "Acuarela de la clase Suculentas técnica mixta"
+    },
+    {
+      "id": "girasol-inicial",
+      "type": "course",
+      "title": "Girasol inicial",
+      "level": [
+        1
+      ],
+      "levelLabel": "Nivel 1",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá girasol inicial junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-5.png",
+      "imagePosition": "16% 14%",
+      "imageAlt": "Acuarela de la clase Girasol inicial"
+    },
+    {
+      "id": "girasol-mixto",
+      "type": "course",
+      "title": "Girasol mixto",
+      "level": [
+        2
+      ],
+      "levelLabel": "Nivel 2",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá girasol mixto junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-5.png",
+      "imagePosition": "84% 14%",
+      "imageAlt": "Acuarela de la clase Girasol mixto"
+    },
+    {
+      "id": "ilustracion-en-tinta",
+      "type": "course",
+      "title": "Ilustración en tinta",
+      "level": [
+        1
+      ],
+      "levelLabel": "Nivel 1",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá ilustración en tinta junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-5.png",
+      "imagePosition": "16% 70%",
+      "imageAlt": "Acuarela de la clase Ilustración en tinta"
+    },
+    {
+      "id": "caladium",
+      "type": "course",
+      "title": "Caladium",
+      "level": [
+        1
+      ],
+      "levelLabel": "Nivel 1",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá caladium junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-5.png",
+      "imagePosition": "84% 70%",
+      "imageAlt": "Acuarela de la clase Caladium"
+    },
+    {
+      "id": "clase-inicial-2",
+      "type": "course",
+      "title": "Clase inicial 2",
+      "level": [
+        1
+      ],
+      "levelLabel": "Nivel 1",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá clase inicial 2 junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-6.png",
+      "imagePosition": "16% 14%",
+      "imageAlt": "Acuarela de la clase Clase inicial 2"
+    },
+    {
+      "id": "clase-inicial-luces",
+      "type": "course",
+      "title": "Clase inicial luces",
+      "level": [
+        1
+      ],
+      "levelLabel": "Nivel 1",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá clase inicial luces junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-6.png",
+      "imagePosition": "84% 14%",
+      "imageAlt": "Acuarela de la clase Clase inicial luces"
+    },
+    {
+      "id": "clase-inicial-frutos",
+      "type": "course",
+      "title": "Clase inicial frutos",
+      "level": [
+        1
+      ],
+      "levelLabel": "Nivel 1",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá clase inicial frutos junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-6.png",
+      "imagePosition": "16% 70%",
+      "imageAlt": "Acuarela de la clase Clase inicial frutos"
+    },
+    {
+      "id": "cactus-en-flor",
+      "type": "course",
+      "title": "Cactus en flor",
+      "level": [
+        1
+      ],
+      "levelLabel": "Nivel 1",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá cactus en flor junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-6.png",
+      "imagePosition": "84% 70%",
+      "imageAlt": "Acuarela de la clase Cactus en flor"
+    },
+    {
+      "id": "clinica-de-rosas",
+      "type": "course",
+      "title": "Clínica de rosas",
+      "level": [
+        2
+      ],
+      "levelLabel": "Nivel 2",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá clínica de rosas junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-7.png",
+      "imagePosition": "16% 14%",
+      "imageAlt": "Acuarela de la clase Clínica de rosas"
+    },
+    {
+      "id": "tulipanes",
+      "type": "course",
+      "title": "Tulipanes",
+      "level": [
+        3
+      ],
+      "levelLabel": "Nivel 3",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá tulipanes junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-7.png",
+      "imagePosition": "84% 14%",
+      "imageAlt": "Acuarela de la clase Tulipanes"
+    },
+    {
+      "id": "flores-libres",
+      "type": "course",
+      "title": "Flores libres",
+      "level": [
+        1
+      ],
+      "levelLabel": "Nivel 1",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá flores libres junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-7.png",
+      "imagePosition": "16% 70%",
+      "imageAlt": "Acuarela de la clase Flores libres"
+    },
+    {
+      "id": "petalos",
+      "type": "course",
+      "title": "Pétalos",
+      "level": [
+        3
+      ],
+      "levelLabel": "Nivel 3",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá pétalos junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-7.png",
+      "imagePosition": "84% 70%",
+      "imageAlt": "Acuarela de la clase Pétalos"
+    },
+    {
+      "id": "postales-polaroid",
+      "type": "course",
+      "title": "Postales Polaroid",
+      "level": [
+        1
+      ],
+      "levelLabel": "Nivel 1",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá postales polaroid junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-8.png",
+      "imagePosition": "16% 14%",
+      "imageAlt": "Acuarela de la clase Postales Polaroid"
+    },
+    {
+      "id": "flores-transparentes",
+      "type": "course",
+      "title": "Flores transparentes",
+      "level": [
+        1
+      ],
+      "levelLabel": "Nivel 1",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá flores transparentes junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-8.png",
+      "imagePosition": "84% 14%",
+      "imageAlt": "Acuarela de la clase Flores transparentes"
+    },
+    {
+      "id": "herbario-botanico",
+      "type": "course",
+      "title": "Herbario botánico",
+      "level": [
+        1
+      ],
+      "levelLabel": "Nivel 1",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá herbario botánico junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-8.png",
+      "imagePosition": "16% 70%",
+      "imageAlt": "Acuarela de la clase Herbario botánico"
+    },
+    {
+      "id": "flores-tropicales",
+      "type": "course",
+      "title": "Flores tropicales",
+      "level": [
+        1
+      ],
+      "levelLabel": "Nivel 1",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá flores tropicales junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-8.png",
+      "imagePosition": "84% 70%",
+      "imageAlt": "Acuarela de la clase Flores tropicales"
+    },
+    {
+      "id": "peces-fantasticos",
+      "type": "course",
+      "title": "Peces fantásticos",
+      "level": [
+        2
+      ],
+      "levelLabel": "Nivel 2",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá peces fantásticos junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-9.png",
+      "imagePosition": "16% 14%",
+      "imageAlt": "Acuarela de la clase Peces fantásticos"
+    },
+    {
+      "id": "peces-koi",
+      "type": "course",
+      "title": "Peces koi",
+      "level": [
+        1
+      ],
+      "levelLabel": "Nivel 1",
+      "durationMinutes": 90,
+      "durationLabel": "1,5 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá peces koi junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-9.png",
+      "imagePosition": "84% 14%",
+      "imageAlt": "Acuarela de la clase Peces koi"
+    },
+    {
+      "id": "magnolia",
+      "type": "course",
+      "title": "Magnolia",
+      "level": [
+        1
+      ],
+      "levelLabel": "Nivel 1",
+      "durationMinutes": 120,
+      "durationLabel": "2 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá magnolia junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-9.png",
+      "imagePosition": "16% 70%",
+      "imageAlt": "Acuarela de la clase Magnolia"
+    },
+    {
+      "id": "hortensias-magicas",
+      "type": "course",
+      "title": "Hortensias mágicas",
+      "level": [
+        2,
+        3
+      ],
+      "levelLabel": "Nivel 2/3",
+      "durationMinutes": 150,
+      "durationLabel": "2,5 h",
+      "classType": "special",
+      "classTypeLabel": "Clase especial",
+      "description": "Pintá hortensias mágicas junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 15,
+      "priceStatus": "provisional",
+      "image": "images/catalog/page-9.png",
+      "imagePosition": "84% 70%",
+      "imageAlt": "Acuarela de la clase Hortensias mágicas"
+    },
+    {
+      "id": "hoja-monstera",
+      "type": "course",
+      "title": "Hoja Monstera",
+      "level": [
+        2
+      ],
+      "levelLabel": "Nivel 2",
+      "durationMinutes": 180,
+      "durationLabel": "3 h",
+      "classType": "double",
+      "classTypeLabel": "Clase doble",
+      "description": "Pintá hoja monstera junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 18,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-10.png",
+      "imagePosition": "16% 14%",
+      "imageAlt": "Acuarela de la clase Hoja Monstera"
+    },
+    {
+      "id": "rosas-completas",
+      "type": "course",
+      "title": "Rosas completas",
+      "level": [
+        3
+      ],
+      "levelLabel": "Nivel 3",
+      "durationMinutes": 180,
+      "durationLabel": "3 h",
+      "classType": "double",
+      "classTypeLabel": "Clase doble",
+      "description": "Pintá rosas completas junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 18,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-10.png",
+      "imagePosition": "84% 14%",
+      "imageAlt": "Acuarela de la clase Rosas completas"
+    },
+    {
+      "id": "dalias",
+      "type": "course",
+      "title": "Dalias",
+      "level": [
+        3
+      ],
+      "levelLabel": "Nivel 3",
+      "durationMinutes": 180,
+      "durationLabel": "3 h",
+      "classType": "double",
+      "classTypeLabel": "Clase doble",
+      "description": "Pintá dalias junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 18,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-10.png",
+      "imagePosition": "16% 70%",
+      "imageAlt": "Acuarela de la clase Dalias"
+    },
+    {
+      "id": "hortensias-realista",
+      "type": "course",
+      "title": "Hortensias realista",
+      "level": [
+        3
+      ],
+      "levelLabel": "Nivel 3",
+      "durationMinutes": 300,
+      "durationLabel": "5 h",
+      "classType": "triple",
+      "classTypeLabel": "Clase triple",
+      "description": "Pintá hortensias realista junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 25,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-10.png",
+      "imagePosition": "84% 70%",
+      "imageAlt": "Acuarela de la clase Hortensias realista"
+    },
+    {
+      "id": "rosa-realista-xl",
+      "type": "course",
+      "title": "Rosa realista XL",
+      "level": [
+        2
+      ],
+      "levelLabel": "Nivel 2",
+      "durationMinutes": 180,
+      "durationLabel": "3 h",
+      "classType": "double",
+      "classTypeLabel": "Clase doble",
+      "description": "Pintá rosa realista xl junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 18,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-11.png",
+      "imagePosition": "16% 14%",
+      "imageAlt": "Acuarela de la clase Rosa realista XL"
+    },
+    {
+      "id": "flores-blancas",
+      "type": "course",
+      "title": "Flores blancas",
+      "level": [
+        2
+      ],
+      "levelLabel": "Nivel 2",
+      "durationMinutes": 120,
+      "durationLabel": "2 h",
+      "classType": "simple",
+      "classTypeLabel": "Clase simple",
+      "description": "Pintá flores blancas junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 12,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-11.png",
+      "imagePosition": "84% 14%",
+      "imageAlt": "Acuarela de la clase Flores blancas"
+    },
+    {
+      "id": "fresias",
+      "type": "course",
+      "title": "Fresias",
+      "level": [
+        2
+      ],
+      "levelLabel": "Nivel 2",
+      "durationMinutes": 180,
+      "durationLabel": "3 h",
+      "classType": "double",
+      "classTypeLabel": "Clase doble",
+      "description": "Pintá fresias junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 18,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-11.png",
+      "imagePosition": "16% 70%",
+      "imageAlt": "Acuarela de la clase Fresias"
+    },
+    {
+      "id": "astromelias",
+      "type": "course",
+      "title": "Astromelias",
+      "level": [
+        1
+      ],
+      "levelLabel": "Nivel 1",
+      "durationMinutes": 180,
+      "durationLabel": "3 h",
+      "classType": "double",
+      "classTypeLabel": "Clase doble",
+      "description": "Pintá astromelias junto a Gaby, con una explicación clara y a tu ritmo.",
+      "includes": [
+        "Video paso a paso",
+        "Fotos de guía",
+        "Material complementario cuando corresponda"
+      ],
+      "priceUsd": 18,
+      "priceStatus": "catalog",
+      "image": "images/catalog/page-11.png",
+      "imagePosition": "84% 70%",
+      "imageAlt": "Acuarela de la clase Astromelias"
+    },
+    {
+      "id": "ebook-10-acuarelas-botanicas",
+      "type": "ebook",
+      "title": "10 Acuarelas Botánicas",
+      "subtitle": "Paso a paso",
+      "level": [
+        1,
+        2,
+        3
+      ],
+      "levelLabel": "Todos los niveles",
+      "durationMinutes": null,
+      "durationLabel": "PDF · 17 páginas",
+      "classType": "ebook",
+      "classTypeLabel": "Ebook descargable",
+      "description": "Una guía visual con diez proyectos botánicos para explorar color, técnica y creatividad, desde lo simple hasta composiciones más detalladas.",
+      "includes": [
+        "10 acuarelas paso a paso",
+        "Patrones y paletas de color",
+        "Tips y técnicas de Gaby"
+      ],
+      "priceUsd": 5,
+      "priceStatus": "approved",
+      "image": "images/ebook-10-acuarelas-botanicas.png",
+      "imagePosition": "center",
+      "imageAlt": "Portada del ebook 10 Acuarelas Botánicas de Gaby Acuarelas"
     }
   ]
 }
