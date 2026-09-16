@@ -60,6 +60,7 @@ Reconstruir la demo de GitHub Pages con el lenguaje visual del ebook, las 40 cla
 - Corrección local: el carrito muestra miniatura, título, tipo/nivel/duración, precio y acción para quitar; el acceso al carrito permanece visible mediante el encabezado fijo.
 - Corrección local: hero sin superposición tipográfica, sección del ebook compacta y portada conservando proporción 2:3.
 - Corrección local: selector visual de PayPal (USD) y Mercado Pago (ARS pendiente), ambos identificados como demo sin cobro.
+- Terminología visual unificada: los cursos y el ebook usan “Agregar al carrito” y el acceso persistente se identifica como “Carrito”.
 - La conexión con el navegador integrado no estuvo disponible; quedan pendientes las revisiones visuales por ancho y de interacción real.
 
 ## Regla para cerrar esta etapa

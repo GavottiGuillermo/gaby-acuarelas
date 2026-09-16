@@ -89,9 +89,9 @@ function renderCatalog() {
 
 function updateAddButton(button, product) {
   const added = state.cart.has(product.id);
-  button.textContent = added ? 'Quitar' : 'Sumar';
+  button.textContent = added ? 'Quitar del carrito' : 'Agregar al carrito';
   button.classList.toggle('added', added);
-  button.setAttribute('aria-label', `${added ? 'Quitar' : 'Sumar'} ${product.title} ${added ? 'de' : 'a'} la selección`);
+  button.setAttribute('aria-label', `${added ? 'Quitar' : 'Agregar'} ${product.title} ${added ? 'del' : 'al'} carrito`);
 }
 
 function updateAllAddButtons() {
@@ -102,7 +102,7 @@ function updateAllAddButtons() {
 
   document.querySelectorAll('[data-add-product]').forEach((button) => {
     const added = state.cart.has(button.dataset.addProduct);
-    button.textContent = added ? 'Quitar el ebook' : 'Sumar el ebook';
+    button.textContent = added ? 'Quitar del carrito' : 'Agregar al carrito';
     button.classList.toggle('added', added);
   });
 }
@@ -119,7 +119,7 @@ function renderCart() {
   const selected = state.products.filter((product) => state.cart.has(product.id));
   document.body.classList.toggle('has-cart', selected.length > 0);
   cartCount.textContent = String(selected.length);
-  cartCount.setAttribute('aria-label', `${selected.length} ${selected.length === 1 ? 'producto' : 'productos'}`);
+  cartCount.setAttribute('aria-label', `${selected.length} ${selected.length === 1 ? 'producto' : 'productos'} en el carrito`);
   cartEmpty.hidden = selected.length > 0;
   cartSummary.hidden = selected.length === 0;
   checkoutForm.hidden = selected.length === 0;
@@ -154,7 +154,7 @@ function renderCart() {
   const selectedCourses = selected.filter((product) => product.type === 'course').length;
   cartPromotion.textContent = selectedCourses >= 2
     ? 'Ya armaste un combo. El descuento se definirá próximamente; el subtotal todavía usa precios de lista.'
-    : 'Sumá dos o más clases para armar tu combo con promoción.';
+    : 'Agregá dos o más clases para armar tu combo con promoción.';
 }
 
 function openCart() {
@@ -217,8 +217,8 @@ checkoutForm.addEventListener('submit', (event) => {
   if (!checkoutForm.reportValidity()) return;
   const provider = event.submitter?.dataset.paymentProvider;
   formStatus.textContent = provider === 'mercadopago'
-    ? 'La selección está lista. Mercado Pago se habilitará cuando confirmemos los importes en ARS; esta demo no realiza cobros.'
-    : 'La selección está lista. PayPal se conectará en la etapa de pagos sandbox; esta demo no realiza cobros.';
+    ? 'El carrito está listo. Mercado Pago se habilitará cuando confirmemos los importes en ARS; esta demo no realiza cobros.'
+    : 'El carrito está listo. PayPal se conectará en la etapa de pagos sandbox; esta demo no realiza cobros.';
 });
 
 document.querySelector('#year').textContent = new Date().getFullYear();

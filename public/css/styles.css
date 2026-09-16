@@ -1454,7 +1454,7 @@ footer > small {
   }
 
   .cart-trigger::before {
-    content: "Selección";
+    content: "Carrito";
     font-size: 0.68rem;
   }
 

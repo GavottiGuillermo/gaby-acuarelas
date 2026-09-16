@@ -25,8 +25,8 @@
         <a href="#como-funciona">Cómo funciona</a>
         <a href="#preguntas">Preguntas</a>
       </nav>
-      <button class="cart-trigger" id="cart-open" type="button" aria-haspopup="dialog">
-        Mi selección <span id="cart-count" aria-label="0 productos">0</span>
+      <button class="cart-trigger" id="cart-open" type="button" aria-haspopup="dialog" aria-controls="cart-dialog">
+        Carrito <span id="cart-count" aria-label="0 productos en el carrito">0</span>
       </button>
     </header>
 
@@ -78,7 +78,7 @@
           </ul>
           <div class="ebook-action">
             <div><small>Precio lanzamiento</small><strong>USD 5</strong></div>
-            <button class="button primary" type="button" data-add-product="ebook-10-acuarelas-botanicas">Sumar el ebook</button>
+            <button class="button primary" type="button" data-add-product="ebook-10-acuarelas-botanicas">Agregar al carrito</button>
           </div>
           <p class="fine-print">La compra y descarga todavía no están habilitadas en esta demo.</p>
         </div>
@@ -96,7 +96,7 @@
         <aside class="promotion-note" aria-label="Promoción por varias clases">
           <span aria-hidden="true">♡</span>
           <div><strong>Armá tu propio combo</strong><small>Al elegir más de una clase habrá una promoción especial. El descuento se definirá próximamente.</small></div>
-          <button type="button" data-open-cart>Ver mi selección</button>
+          <button type="button" data-open-cart>Ver carrito</button>
         </aside>
 
         <div class="catalog-toolbar">
@@ -135,7 +135,7 @@
           <h2>De la inspiración <em>a tu próxima obra.</em></h2>
         </div>
         <div class="steps">
-          <article><span>01</span><h3>Elegí</h3><p>Filtrá por nivel y sumá una o varias clases a tu selección.</p></article>
+          <article><span>01</span><h3>Elegí</h3><p>Filtrá por nivel y agregá una o varias clases al carrito.</p></article>
           <article><span>02</span><h3>Armá tu combo</h3><p>Combiná las propuestas que más te gusten. La promoción se confirmará más adelante.</p></article>
           <article><span>03</span><h3>Dejanos tus datos</h3><p>Nombre, apellido y correo para preparar el futuro pedido.</p></article>
           <article><span>04</span><h3>Recibí</h3><p>Después del pago aprobado llegará un correo con el acceso, y Gaby recibirá el aviso de venta.</p></article>
@@ -189,14 +189,14 @@
 
     <dialog class="cart-dialog" id="cart-dialog" aria-labelledby="cart-title">
       <div class="cart-header">
-        <div><p class="kicker">Tu selección</p><h2 id="cart-title">Armá tu combo</h2></div>
+        <div><p class="kicker">Tu carrito</p><h2 id="cart-title">Armá tu combo</h2></div>
         <button class="dialog-close" type="button" aria-label="Cerrar carrito">×</button>
       </div>
       <div class="cart-items" id="cart-items"></div>
-      <p class="cart-empty" id="cart-empty">Todavía no elegiste ninguna clase.</p>
+      <p class="cart-empty" id="cart-empty">Tu carrito está vacío.</p>
       <div class="cart-summary" id="cart-summary" hidden>
         <p><span>Subtotal en precios de lista</span><strong id="cart-total">USD 0</strong></p>
-        <p class="cart-promotion" id="cart-promotion">Sumá dos o más clases para armar tu combo.</p>
+        <p class="cart-promotion" id="cart-promotion">Agregá dos o más clases para armar tu combo.</p>
       </div>
       <form class="checkout-form" id="checkout-form">
         <fieldset>
