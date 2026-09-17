@@ -2,67 +2,86 @@
 
 ## Etapa activa
 
-- Número: 2
-- Nombre: Tienda estática aprobable
+- Número: 4
+- Nombre: Pagos sandbox
 - Estado: `ACTIVE`
-- Inicio: 2026-09-15
-- Responsable de aprobación: Guillermo y Gaby
+- Inicio: 2026-09-17
+- Responsable de aprobación: Guillermo
 
-La etapa 1 quedó `COMPLETE` con aprobación humana y decisiones provisionales documentadas en `DEFERRED_DECISIONS.md`.
+La etapa 3 quedó `COMPLETE` el 2026-09-17 con aprobación humana explícita de Guillermo. El núcleo de órdenes, PostgreSQL, aislamiento respecto de Capri y restauración del esquema fueron verificados antes de habilitar pagos de prueba.
 
 ## Objetivo
 
-Reconstruir la demo de GitHub Pages con el lenguaje visual del ebook, las 40 clases relevadas, el ebook a USD 5 y un carrito visual que permita armar combos sin procesar pagos.
+Integrar Mercado Pago y PayPal exclusivamente en ambientes sandbox, manteniendo al servidor como autoridad de productos, monedas e importes y conciliando cada resultado mediante notificaciones verificadas.
 
 ## Criterios de salida
 
-- [ ] Home responsive alineada con la estética del ebook.
-- [x] Catálogo de 40 clases reales con filtros por nivel.
-- [x] Ebook `10 Acuarelas Botánicas - Paso a paso` a USD 5.
-- [x] Carrito visual para compra individual o combo libre.
-- [x] Mensaje de promociones sin aplicar descuentos todavía.
-- [x] Formulario visual con nombre, apellido y correo obligatorios.
-- [x] Aclaración inequívoca de que la demo no procesa pagos.
-- [x] Trabajos de alumnas/os ausentes hasta recibir permisos.
-- [ ] Revisión en 360 px, 768 px, 1280 px y 1440 px sin desbordes.
-- [ ] Navegación por teclado y foco visibles.
-- [x] Imágenes utilizables y sin enlaces temporales.
-- [ ] Sin errores de consola, enlaces rotos ni datos demo inadvertidos.
-- [ ] Aprobación de la demo pública por Gaby.
+- [x] Creación de órdenes PayPal sandbox desde el servidor en USD.
+- [ ] Creación de preferencias u órdenes Mercado Pago sandbox desde el servidor en ARS.
+- [ ] Redirección o aprobación del pago según cada proveedor.
+- [ ] Verificación de firmas de webhooks de PayPal y Mercado Pago.
+- [ ] Conciliación de proveedor, referencia, orden, producto, moneda, importe y estado.
+- [ ] Registro idempotente de intentos y eventos de pago.
+- [ ] Casos aprobado, rechazado, pendiente y cancelado probados para ambos proveedores.
+- [ ] Webhooks repetidos probados sin duplicar aprobaciones ni eventos efectivos.
+- [x] Importes manipulados desde el cliente rechazados antes de crear el pago.
+- [ ] Credenciales sandbox almacenadas únicamente en variables de entorno.
+- [ ] Ausencia de credenciales, cuerpos sensibles y datos personales en logs de prueba.
 
 ## Decisiones aplicables
 
-- Moneda visible: USD.
-- `Hortensias mágicas`: especial, 2,5 horas, USD 15 provisional.
-- `Hortensias realista`: triple, USD 25 provisional.
-- El carrito suma precios de lista. La promoción se anuncia, pero no se calcula.
-- PayPal y Mercado Pago aparecen como alternativas visuales. Mercado Pago no muestra un importe hasta confirmar la lista en ARS.
-- El acceso y su vigencia se muestran como pendientes de confirmación.
-- No se publica el PDF completo del ebook.
-- No se publican trabajos de alumnas/os.
+- PayPal procesa USD y Mercado Pago procesa ARS.
+- El servidor obtiene producto, moneda e importe desde su catálogo y desde la orden persistida; nunca acepta esos valores desde el navegador.
+- El regreso del navegador desde un proveedor no confirma una compra.
+- Una orden sólo cambia a `approved` después de conciliar una notificación auténtica del proveedor.
+- Una referencia de proveedor no puede aprobar dos órdenes y un webhook repetido no duplica transiciones.
+- Las credenciales administrativas de PostgreSQL no se usan en el servicio web.
+
+## Prerrequisitos pendientes
+
+- Confirmar la lista de precios ARS antes de crear pagos Mercado Pago. No se permite una conversión automática ni un importe provisional para pagos.
+- Crear u obtener credenciales de prueba de Mercado Pago y guardarlas sólo en `.env` local o variables privadas del entorno. Las tres credenciales PayPal Sandbox ya están configuradas localmente y fueron aceptadas por OAuth.
+- Definir una URL HTTPS de pruebas para recibir webhooks sandbox sin exponer el servidor local de forma permanente.
 
 ## Acciones no permitidas todavía
 
-- Crear tablas o escribir en PostgreSQL.
-- Integrar cobros reales o sandbox.
-- Enviar correos reales.
-- Publicar enlaces de acceso a cursos o al ebook.
-- Desplegar Express en Render como servicio transaccional.
+- Usar credenciales live o productivas.
+- Procesar cobros reales o habilitar botones que aparenten un cobro productivo.
+- Marcar una orden como pagada usando parámetros de retorno del navegador.
+- Enviar correos reales o entregar accesos a cursos o al ebook.
+- Publicar secretos, cuerpos completos de webhooks o datos personales en logs.
+- Desplegar el servicio transaccional como producción.
 
-## Evidencia inicial
+## Evidencia de cierre de la etapa 3
 
-- Etapa 1 aprobada por Guillermo con pendientes controlados.
-- Dirección visual del ebook aprobada por Gaby.
-- Catálogo fuente: 14 imágenes y 40 clases.
-- Producto digital aprobado: ebook PDF a USD 5.
-- `npm run check` (2026-09-15): etapa 2 activa; sintaxis JavaScript válida; 40 clases, 1 ebook, precios USD e imágenes sincronizados.
-- Servidor local (2026-09-15): home, catálogo JSON, CSS y portada del ebook respondieron HTTP 200.
-- Corrección local: el carrito muestra miniatura, título, tipo/nivel/duración, precio y acción para quitar; el acceso al carrito permanece visible mediante el encabezado fijo.
-- Corrección local: hero sin superposición tipográfica, sección del ebook compacta y portada conservando proporción 2:3.
-- Corrección local: selector visual de PayPal (USD) y Mercado Pago (ARS pendiente), ambos identificados como demo sin cobro.
-- Terminología visual unificada: los cursos y el ebook usan “Agregar al carrito” y el acceso persistente se identifica como “Carrito”.
-- La conexión con el navegador integrado no estuvo disponible; quedan pendientes las revisiones visuales por ancho y de interacción real.
+- Los diez criterios de salida de la etapa 3 quedaron completos y documentados.
+- Migración `001_order_core` aplicada dentro del esquema aislado `gaby_acuarelas`.
+- Rol `gaby_acuarelas_app` verificado sin privilegios administrativos ni acceso a tablas fuera del esquema.
+- `DATABASE_URL` probada con escritura y lectura transaccional; el rollback no dejó registros.
+- Backup de estructura restaurado en PostgreSQL 18 local con 9 tablas, 49 restricciones y ninguna fila copiada.
+- `npm run check` aprobó sintaxis, pruebas, compuerta de etapas y catálogo; el escaneo no detectó secretos versionados.
+- Guillermo aprobó explícitamente el cierre de la etapa 3 y la activación de la etapa 4 el 2026-09-17.
+
+## Evidencia inicial de la etapa 4
+
+- Tablas de intentos y eventos de pago disponibles con restricciones únicas.
+- Estados de orden e idempotencia documentados y probados antes de conectar proveedores.
+- Se implementó el cliente PayPal Orders v2 limitado a Sandbox, con OAuth, `PayPal-Request-Id`, creación y captura desde servidor.
+- `POST /api/checkout/paypal` acepta únicamente el identificador de una orden persistida; el importe, la moneda y los productos salen de su copia inmutable.
+- `POST /api/payments/paypal/capture` no aprueba la orden interna: conserva el estado pendiente hasta recibir y conciliar el webhook.
+- `POST /api/webhooks/paypal` verifica la firma mediante la API oficial de PayPal y registra sólo el hash del cuerpo, sin guardar ni escribir el contenido sensible en logs.
+- La conciliación implementada compara proveedor, referencia, orden, productos, moneda e importe antes de permitir una transición.
+- Las pruebas automatizadas cubren creación desde servidor, rechazo de importes del cliente, firma inválida, diferencia de importe y webhook repetido.
+- PayPal Sandbox aceptó las credenciales locales mediante OAuth el 2026-09-17; los valores no fueron mostrados, copiados ni escritos en el repositorio.
+- Se creó desde el servidor una orden Sandbox real del ebook por USD 5, respaldada por una orden PostgreSQL identificada como prueba y conservada en estado `pending`.
+- Repetir el inicio del checkout devolvió la misma referencia PayPal con HTTP 200, sin crear un segundo intento; el primer inicio respondió HTTP 201.
+- Un pedido manipulado con moneda ARS e importe de un centavo fue rechazado con HTTP 400 antes de llamar al proveedor.
+- El Webhook ID configurado existe en la app Sandbox y está suscripto a todos los eventos, pero su URL apunta actualmente a GitHub Pages. Esa URL es estática y no puede recibir `POST`; debe reemplazarse por una URL HTTPS del servidor de pruebas antes de validar firmas y conciliación reales.
+- El backend informa PostgreSQL y PayPal Sandbox como configurados en `/health`.
+- `.env.example` contiene sólo nombres de variables y valores vacíos para proveedores.
+- `.env` está excluido por `.gitignore`; el escaneo del repositorio no encontró valores de credenciales PayPal.
+- `npm run check` aprobó sintaxis, 22 pruebas automatizadas, compuerta de etapa y catálogo el 2026-09-17; se omitió únicamente la prueba PostgreSQL opcional por no estar definida `TEST_DATABASE_URL` en esa ejecución.
 
 ## Regla para cerrar esta etapa
 
-La demo debe superar validación visual y técnica. La aprobación de Gaby puede incluir correcciones que se registrarán sin habilitar pagos ni entrega automática.
+Ambos proveedores deben superar en sandbox los estados aprobado, rechazado, pendiente, cancelado y webhook repetido. No se puede diferir la verificación de firmas, la conciliación de importes y monedas, la idempotencia ni la protección de credenciales.

@@ -64,12 +64,64 @@ La entrega tiene estado independiente:
 - `sent`
 - `failed`
 
+### Transiciones permitidas
+
+| Entidad | Estado actual | Estados siguientes permitidos |
+| --- | --- | --- |
+| Orden | `pending` | `approved`, `rejected`, `cancelled` |
+| Orden | `approved` | `refunded` |
+| Orden | `rejected` | Ninguno |
+| Orden | `cancelled` | Ninguno |
+| Orden | `refunded` | Ninguno |
+| Entrega | `pending` | `sent`, `failed` |
+| Entrega | `failed` | `pending`, `sent` |
+| Entrega | `sent` | Ninguno |
+
+Las transiciones se validan en el dominio. La futura conciliación de pagos no podrá asignar estados arbitrarios ni devolver una orden aprobada a `pending`.
+
 ## Reglas de idempotencia
 
 - Una referencia del proveedor no puede aprobar dos órdenes.
 - Repetir el mismo webhook no puede duplicar la transición de pago.
 - Una orden aprobada puede tener una sola entrega lógica por producto.
 - Reintentar un correo fallido reutiliza la misma entrega y registra cada intento.
+
+## Contrato inicial de la API de órdenes
+
+La etapa 3 incorpora `POST /api/orders` y `GET /api/orders/:id`. Estos endpoints no crean pagos ni envían correos.
+
+Para crear una orden, el cliente envía el encabezado `Idempotency-Key` y únicamente los datos del comprador y los identificadores de producto:
+
+```json
+{
+  "customer": {
+    "firstName": "Ana",
+    "lastName": "Pérez",
+    "email": "ana@example.com"
+  },
+  "items": [
+    { "productId": "peonias-pimpollo" }
+  ]
+}
+```
+
+El servidor rechaza importes, monedas y precios aportados por el navegador. Resuelve cada producto desde el catálogo controlado, fija USD y guarda en la orden una copia inmutable del título, tipo y precio aplicados.
+
+Repetir el mismo pedido con la misma clave devuelve la orden existente. Reutilizar la clave con otro comprador o productos diferentes responde con conflicto. La respuesta de consulta no incluye nombre ni correo del comprador.
+
+Si `DATABASE_URL` no está configurada, la API de órdenes responde `503` y la demo estática continúa disponible. La aplicación usa un pool limitado y un `search_path` explícito; las migraciones usan una credencial administrativa separada.
+
+## Contrato inicial de PayPal Sandbox
+
+La etapa 4 incorpora tres endpoints de servidor:
+
+- `POST /api/checkout/paypal` recibe únicamente `{ "orderId": "..." }`, crea un intento y devuelve la URL de aprobación Sandbox.
+- `POST /api/payments/paypal/capture` recibe la orden interna y la referencia PayPal después del retorno. Ejecuta la captura, pero no marca la orden interna como aprobada.
+- `POST /api/webhooks/paypal` verifica la firma con PayPal, reconcilia la referencia, la orden, los productos, la moneda y el importe, y recién entonces aplica una transición idempotente.
+
+Los importes y productos del pedido PayPal se construyen desde la copia inmutable de la orden. Cualquier campo adicional enviado por el navegador, incluido un precio o moneda, se rechaza. El cuerpo del webhook no se escribe en logs ni se conserva completo: se registra únicamente su hash SHA-256 y los metadatos necesarios para idempotencia y auditoría.
+
+Durante el desarrollo `PAYPAL_ENV` debe ser `sandbox`. La ausencia o configuración parcial de `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET` y `PAYPAL_WEBHOOK_ID` mantiene el checkout cerrado. Las credenciales `Live` siguen prohibidas hasta las etapas productivas.
 
 ## Casos alternativos
 

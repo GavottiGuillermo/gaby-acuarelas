@@ -14,10 +14,14 @@
 
 ## D-003 - PostgreSQL compartido con aislamiento
 
-- Estado: propuesta aceptada de manera provisional.
+- Estado: aceptada y técnicamente verificada.
 - Decisión: se puede reutilizar la instancia PostgreSQL paga donde vive Capri si la capacidad lo permite.
 - Requisitos: esquema `gaby_acuarelas`, usuario propio, permisos limitados, migraciones propias y `search_path` explícito.
-- Pendiente: revisar capacidad, backups, conexiones disponibles y riesgo operativo antes de crear el esquema.
+- Revisión técnica del 2026-09-16: PostgreSQL 18.3 con TLS, 1 conexión activa de 103 disponibles, aproximadamente 9,3 MB utilizados, permisos para crear esquema y rol, y esquema `gaby_acuarelas` inexistente.
+- Backup: Guillermo confirmó un backup actual de la base compartida el 2026-09-16.
+- Migración inicial: `001_order_core` aplicada el 2026-09-16 dentro del esquema nuevo `gaby_acuarelas`; las 8 tablas de dominio quedaron vacías y la estructura fue verificada.
+- Rol de aplicación: `gaby_acuarelas_app` creado y verificado el 2026-09-17 con límite de 5 conexiones, sin privilegios administrativos, sin creación de objetos y sin acceso a tablas fuera de `gaby_acuarelas`.
+- Verificación final: la aplicación conectó con el rol limitado, ejecutó una transacción completa con rollback y no dejó datos de prueba. Un backup exclusivo de estructura fue restaurado en PostgreSQL 18 local sin copiar filas.
 
 ## D-004 - Proveedores y monedas
 
@@ -104,6 +108,14 @@
 
 - Gaby recibirá un correo administrativo por cada venta confirmada.
 - Su implementación corresponde a la etapa 5 y debe ser idempotente.
+
+## D-016 - Cuenta PayPal para desarrollo sandbox
+
+- Estado: aceptada para desarrollo por Guillermo el 2026-09-17.
+- La integración y las pruebas de la etapa 4 pueden usar una app Sandbox creada en la cuenta de desarrollador de Guillermo.
+- Esta autorización no habilita credenciales `Live`, cobros reales ni el uso de saldo o tarjetas reales.
+- Antes de producción se reemplazarán `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET` y `PAYPAL_WEBHOOK_ID` por credenciales de una app de Gaby o de una cuenta comercial expresamente autorizada por ella.
+- El cambio de titular no requiere modificar precios ni código: las credenciales viven exclusivamente en variables privadas del entorno y los datos sandbox no se migran a producción.
 
 ## Asuntos abiertos
 

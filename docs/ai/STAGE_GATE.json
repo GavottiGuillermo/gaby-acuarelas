@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "activeStage": 2,
+  "activeStage": 4,
   "stages": [
     {
       "number": 1,
@@ -11,19 +11,19 @@
     {
       "number": 2,
       "slug": "tienda-estatica",
-      "status": "ACTIVE",
-      "humanApproval": false
+      "status": "COMPLETE",
+      "humanApproval": true
     },
     {
       "number": 3,
       "slug": "ordenes-postgresql",
-      "status": "BLOCKED",
-      "humanApproval": false
+      "status": "COMPLETE",
+      "humanApproval": true
     },
     {
       "number": 4,
       "slug": "pagos-sandbox",
-      "status": "BLOCKED",
+      "status": "ACTIVE",
       "humanApproval": false
     },
     {

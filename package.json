@@ -10,13 +10,21 @@
   "scripts": {
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
+    "test": "node --test --test-isolation=none",
+    "db:check-readiness": "node scripts/check-database-readiness.js",
+    "db:create-app-role": "node scripts/create-app-role.js",
+    "db:migrate": "node scripts/migrate.js up",
+    "db:rollback": "node scripts/migrate.js down",
+    "db:verify": "node scripts/verify-database-schema.js",
+    "db:verify-app": "node scripts/verify-app-database.js",
     "gate": "node scripts/check-stage-gate.js",
     "catalog:build": "node scripts/build-public-catalog.js",
     "catalog:check": "node scripts/check-course-catalog.js",
-    "check": "node --check src/server.js && node --check public/js/app.js && node --check scripts/check-stage-gate.js && node --check scripts/build-public-catalog.js && node --check scripts/check-course-catalog.js && node scripts/check-stage-gate.js && node scripts/check-course-catalog.js"
+    "check": "node --check src/server.js && node --check src/app.js && node --check src/database.js && node --check src/orders/service.js && node --check src/orders/states.js && node --check src/orders/postgres-repository.js && node --check src/payments/errors.js && node --check src/payments/paypal-client.js && node --check src/payments/service.js && node --check src/payments/postgres-repository.js && node --check scripts/check-database-readiness.js && node --check scripts/create-app-role.js && node --check scripts/migrate.js && node --check scripts/verify-app-database.js && node --check scripts/verify-database-schema.js && node --check public/js/app.js && npm test && npm run gate && npm run catalog:check"
   },
   "dependencies": {
     "dotenv": "^17.2.2",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "pg": "^8.23.0"
   }
 }

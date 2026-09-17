@@ -22,7 +22,7 @@ La maqueta preliminar incluye:
 - variables preparadas para pagos, correo y Dropbox;
 - configuración inicial para Render y publicación automática en GitHub Pages.
 
-Los nombres, niveles y precios provienen del catálogo aportado, salvo las decisiones provisionales identificadas en `docs/ai/DEFERRED_DECISIONS.md`. La versión de GitHub Pages es únicamente visual y no procesa pagos. El checkout del servidor responde como no disponible hasta implementar y probar las credenciales sandbox.
+Los nombres, niveles y precios provienen del catálogo aportado, salvo las decisiones provisionales identificadas en `docs/ai/DEFERRED_DECISIONS.md`. La versión de GitHub Pages es únicamente visual y no procesa pagos. El backend de PayPal Sandbox ya crea, captura y concilia órdenes, pero permanece deshabilitado hasta configurar y probar credenciales de desarrollo; Mercado Pago continúa bloqueado por los importes ARS.
 
 El catálogo real recibido está transcripto en `docs/ai/COURSE_CATALOG.md` y `docs/ai/course-catalog.json`, y alimenta la demo estática. Las imágenes de las láminas, el precio especial y la promoción sin descuento son provisionales.
 
@@ -37,6 +37,13 @@ npm run dev
 ```
 
 Abrir `http://localhost:3000`.
+
+Sin `DATABASE_URL`, la tienda estática sigue disponible y la API de órdenes responde como no configurada. Para trabajar con PostgreSQL durante la etapa 3, usar una base no productiva y seguir [`db/README.md`](db/README.md). Las credenciales se guardan solamente en `.env` o en variables privadas de Render.
+
+```bash
+npm run db:migrate
+npm test
+```
 
 ## Demo en GitHub Pages
 

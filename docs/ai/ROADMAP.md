@@ -26,7 +26,7 @@ Compuerta de salida:
 
 ## Etapa 2 - Tienda estática aprobable
 
-Estado: `ACTIVE` desde 2026-09-15.
+Estado: `COMPLETE` desde 2026-09-16. Guillermo confirmó la revisión visual y técnica manual, e informó la aprobación de la demo pública por Gaby.
 
 Objetivo: reconstruir la demo de GitHub Pages con el sistema visual y catálogo reales.
 
@@ -49,6 +49,8 @@ Compuerta de salida:
 
 ## Etapa 3 - Núcleo de órdenes y PostgreSQL
 
+Estado: `COMPLETE` desde 2026-09-17. Guillermo aprobó el cierre después de verificar migraciones, API, idempotencia, aislamiento de Capri, permisos mínimos y restauración del esquema.
+
 Objetivo: implementar el dominio de compras sin conectar cobros reales.
 
 Entregables:
@@ -68,6 +70,8 @@ Compuerta de salida:
 - Backup y restore del esquema fueron ensayados.
 
 ## Etapa 4 - Pagos sandbox
+
+Estado: `ACTIVE` desde 2026-09-17.
 
 Objetivo: integrar Mercado Pago y PayPal en ambientes de prueba.
 
