@@ -94,6 +94,8 @@ Integrar Mercado Pago y PayPal exclusivamente en ambientes sandbox, manteniendo 
 
 - Tras una aprobación conciliada, la interfaz vacía el carrito y muestra una confirmación independiente con el resumen inmutable devuelto por la orden. El texto anticipa los materiales previstos por correo, pero aclara que Sandbox todavía no envía correos ni entrega contenido.
 - `npm run check` volvió a aprobar sintaxis, 23 pruebas automatizadas, compuerta de etapa y catálogo el 2026-09-21; la prueba PostgreSQL opcional se omitió porque `TEST_DATABASE_URL` no estaba configurada.
+- El retorno PayPal pendiente ya no deja al comprador en el carrito: muestra un diálogo de procesamiento con un resumen breve, conserva la orden para nuevas consultas y sólo cambia a éxito cuando el webhook firmado deja la orden `approved`. La confirmación final se compactó para reducir el desplazamiento vertical.
+- `npm run check` aprobó este ajuste con 23 pruebas automatizadas, compuerta de etapa y catálogo el 2026-09-21; sólo se omitió la prueba PostgreSQL opcional sin `TEST_DATABASE_URL`.
 
 ## Regla para cerrar esta etapa
 
