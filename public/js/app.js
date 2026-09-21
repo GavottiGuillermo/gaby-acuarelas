@@ -11,6 +11,11 @@ const cartPromotion = document.querySelector('#cart-promotion');
 const cartCount = document.querySelector('#cart-count');
 const checkoutForm = document.querySelector('#checkout-form');
 const formStatus = document.querySelector('#form-status');
+const purchaseSuccessDialog = document.querySelector('#purchase-success-dialog');
+const purchaseSuccessItems = document.querySelector('#purchase-success-items');
+const purchaseSuccessTotal = document.querySelector('#purchase-success-total');
+const purchaseSuccessReference = document.querySelector('#purchase-success-reference');
+const purchaseSuccessDelivery = document.querySelector('#purchase-success-delivery');
 
 const PAGE_SIZE = 12;
 const PAYPAL_ORDER_POLL_ATTEMPTS = 15;
@@ -21,10 +26,6 @@ const PAYPAL_RETURN_STATUSES = new Map([
   ['cancelled', 'Cancelaste el pago sandbox en PayPal. Podés volver a intentarlo desde el carrito.']
 ]);
 const PAYPAL_ORDER_STATUSES = new Map([
-  ['approved', {
-    tone: 'success',
-    message: 'Pago sandbox confirmado mediante el webhook firmado de PayPal. Es una prueba: no hubo cobro real ni entrega automática.'
-  }],
   ['rejected', {
     tone: 'error',
     message: 'PayPal informó que el pago sandbox fue rechazado. La orden no fue aprobada y no se realizará ninguna entrega.'
@@ -312,6 +313,59 @@ function forgetPendingPayPalOrder() {
   }
 }
 
+function clearCompletedCart() {
+  state.cart.clear();
+  checkoutForm.reset();
+  showFormStatus('');
+
+  try {
+    sessionStorage.removeItem('gaby-cart');
+    for (let index = sessionStorage.length - 1; index >= 0; index -= 1) {
+      const key = sessionStorage.key(index);
+      if (key?.startsWith('gaby-order:')) sessionStorage.removeItem(key);
+    }
+  } catch {
+    // La interfaz queda limpia aunque el navegador bloquee el almacenamiento.
+  }
+
+  updateAllAddButtons();
+  renderCart();
+}
+
+function deliveryDetailsFor(order) {
+  const productTypes = new Set((order.items || []).map((item) => item.productType));
+  const details = [
+    'La confirmación de pago y la referencia de tu pedido.'
+  ];
+
+  if (productTypes.has('course')) {
+    details.push('Para las clases, un enlace seguro con videos, fotos de guía y, cuando corresponda, patrones o videos de práctica.');
+  }
+  if (productTypes.has('ebook')) {
+    details.push('Para el ebook, un enlace protegido para descargar el PDF.');
+  }
+  return details;
+}
+
+function showPurchaseSuccess(order) {
+  const items = Array.isArray(order.items) ? order.items : [];
+  purchaseSuccessItems.replaceChildren(...items.map((item) => {
+    const row = createElement('li');
+    const copy = createElement('span');
+    copy.appendChild(createElement('strong', '', item.title));
+    copy.appendChild(createElement('small', '', item.productType === 'ebook' ? 'Ebook PDF' : 'Clase online'));
+    row.append(copy, createElement('span', 'purchase-success-price', usd.format(item.lineAmountCents / 100)));
+    return row;
+  }));
+  purchaseSuccessTotal.textContent = usd.format(order.totalAmountCents / 100);
+  purchaseSuccessReference.textContent = `Orden de prueba ${order.id}`;
+  purchaseSuccessDelivery.replaceChildren(...deliveryDetailsFor(order).map((detail) => createElement('li', '', detail)));
+
+  clearCompletedCart();
+  if (cartDialog.open) cartDialog.close();
+  if (!purchaseSuccessDialog.open) purchaseSuccessDialog.showModal();
+}
+
 function wait(milliseconds) {
   return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 }
@@ -347,6 +401,12 @@ async function showPayPalOrderResult(orderId, captureError = null) {
 
   try {
     const order = await waitForPayPalOrder(orderId);
+    if (order?.status === 'approved') {
+      forgetPendingPayPalOrder();
+      showPurchaseSuccess(order);
+      return;
+    }
+
     const status = PAYPAL_ORDER_STATUSES.get(order?.status);
     if (status) {
       forgetPendingPayPalOrder();
@@ -544,6 +604,16 @@ cartDialog.addEventListener('click', (event) => {
   const outside = event.clientX < bounds.left || event.clientX > bounds.right
     || event.clientY < bounds.top || event.clientY > bounds.bottom;
   if (outside) cartDialog.close();
+});
+
+purchaseSuccessDialog.querySelectorAll('[data-close-purchase-success]').forEach((button) => {
+  button.addEventListener('click', () => purchaseSuccessDialog.close());
+});
+purchaseSuccessDialog.addEventListener('click', (event) => {
+  const bounds = purchaseSuccessDialog.getBoundingClientRect();
+  const outside = event.clientX < bounds.left || event.clientX > bounds.right
+    || event.clientY < bounds.top || event.clientY > bounds.bottom;
+  if (outside) purchaseSuccessDialog.close();
 });
 
 checkoutForm.addEventListener('submit', async (event) => {

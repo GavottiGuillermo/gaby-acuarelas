@@ -222,6 +222,34 @@
       </form>
     </dialog>
 
+    <dialog class="purchase-success-dialog" id="purchase-success-dialog" aria-labelledby="purchase-success-title" aria-describedby="purchase-success-description">
+      <div class="purchase-success-card">
+        <button class="dialog-close purchase-success-close" type="button" aria-label="Cerrar confirmación" data-close-purchase-success>×</button>
+        <span class="purchase-success-mark" aria-hidden="true">✓</span>
+        <p class="kicker">Pago confirmado</p>
+        <h2 id="purchase-success-title">¡Gracias por tu compra!</h2>
+        <p class="purchase-success-intro" id="purchase-success-description">PayPal confirmó correctamente el pago sandbox mediante su webhook firmado.</p>
+
+        <section class="purchase-success-summary" aria-labelledby="purchase-summary-title">
+          <div class="purchase-success-heading">
+            <h3 id="purchase-summary-title">Resumen de tu compra</h3>
+            <small id="purchase-success-reference"></small>
+          </div>
+          <ul id="purchase-success-items"></ul>
+          <p class="purchase-success-total"><span>Total</span><strong id="purchase-success-total">USD 0</strong></p>
+        </section>
+
+        <section class="purchase-success-next" aria-labelledby="purchase-next-title">
+          <h3 id="purchase-next-title">¿Qué vas a recibir por correo?</h3>
+          <ul id="purchase-success-delivery"></ul>
+          <p>La vigencia del acceso y el canal de soporte se informarán cuando queden definidos.</p>
+        </section>
+
+        <p class="purchase-success-sandbox"><strong>Esta fue una compra de prueba.</strong> No hubo cobro real y, durante esta etapa Sandbox, no se envía ningún correo ni se habilita la entrega automática.</p>
+        <button class="button primary purchase-success-action" type="button" data-close-purchase-success>Seguir explorando</button>
+      </div>
+    </dialog>
+
     <script src="js/app.js" defer></script>
   </body>
 </html>

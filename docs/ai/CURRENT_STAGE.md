@@ -92,6 +92,9 @@ Integrar Mercado Pago y PayPal exclusivamente en ambientes sandbox, manteniendo 
 - Las consultas del estado de orden usan `Cache-Control: no-store`, y las pruebas automatizadas cubren la traducción de webhooks PayPal a aprobado, pendiente, rechazado y cancelado.
 - `npm run check` aprobó sintaxis, 23 pruebas automatizadas, compuerta de etapa y catálogo el 2026-09-21; se omitió únicamente la prueba PostgreSQL opcional porque `TEST_DATABASE_URL` no estaba configurada.
 
+- Tras una aprobación conciliada, la interfaz vacía el carrito y muestra una confirmación independiente con el resumen inmutable devuelto por la orden. El texto anticipa los materiales previstos por correo, pero aclara que Sandbox todavía no envía correos ni entrega contenido.
+- `npm run check` volvió a aprobar sintaxis, 23 pruebas automatizadas, compuerta de etapa y catálogo el 2026-09-21; la prueba PostgreSQL opcional se omitió porque `TEST_DATABASE_URL` no estaba configurada.
+
 ## Regla para cerrar esta etapa
 
 Ambos proveedores deben superar en sandbox los estados aprobado, rechazado, pendiente, cancelado y webhook repetido. No se puede diferir la verificación de firmas, la conciliación de importes y monedas, la idempotencia ni la protección de credenciales.
