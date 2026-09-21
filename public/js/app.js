@@ -13,11 +13,22 @@ const checkoutForm = document.querySelector('#checkout-form');
 const formStatus = document.querySelector('#form-status');
 
 const PAGE_SIZE = 12;
+const PAYPAL_RETURN_STATUSES = new Map([
+  ['pending_webhook', 'PayPal registró la captura sandbox. La orden queda pendiente hasta recibir y conciliar el webhook firmado.'],
+  ['cancelled', 'Cancelaste el pago sandbox en PayPal. Podés volver a intentarlo desde el carrito.']
+]);
 const state = {
   products: [],
   filter: 'all',
   visible: PAGE_SIZE,
-  cart: new Set()
+  cart: new Set(),
+  runtime: {
+    payments: {
+      paypal: 'disabled',
+      mercadopago: 'disabled'
+    }
+  },
+  submitting: false
 };
 
 const usd = new Intl.NumberFormat('en-US', {
@@ -110,6 +121,7 @@ function updateAllAddButtons() {
 function toggleCart(productId) {
   if (state.cart.has(productId)) state.cart.delete(productId);
   else state.cart.add(productId);
+  sessionStorage.setItem('gaby-cart', JSON.stringify([...state.cart]));
   formStatus.textContent = '';
   updateAllAddButtons();
   renderCart();
@@ -159,7 +171,116 @@ function renderCart() {
 
 function openCart() {
   renderCart();
-  cartDialog.showModal();
+  if (!cartDialog.open) cartDialog.showModal();
+}
+
+function selectedProducts() {
+  return state.products.filter((product) => state.cart.has(product.id));
+}
+
+function getCheckoutCustomer() {
+  const formData = new FormData(checkoutForm);
+  return {
+    firstName: String(formData.get('firstName') || '').trim(),
+    lastName: String(formData.get('lastName') || '').trim(),
+    email: String(formData.get('email') || '').trim().toLowerCase()
+  };
+}
+
+function secureRandomHex(byteLength = 16) {
+  if (!window.crypto?.getRandomValues) {
+    throw new Error('Este navegador no puede generar una clave segura para iniciar el pedido.');
+  }
+
+  const bytes = new Uint8Array(byteLength);
+  window.crypto.getRandomValues(bytes);
+  return [...bytes].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+async function idempotencyKeyFor(customer, items) {
+  if (!window.crypto?.subtle) {
+    throw new Error('Este navegador no puede proteger la clave del pedido.');
+  }
+
+  const requestFingerprint = JSON.stringify({
+    customer,
+    items: items.map((item) => item.productId).sort()
+  });
+  const digest = await window.crypto.subtle.digest(
+    'SHA-256',
+    new TextEncoder().encode(requestFingerprint)
+  );
+  const fingerprint = [...new Uint8Array(digest)]
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
+  const storageKey = `gaby-order:${fingerprint}`;
+  const existing = sessionStorage.getItem(storageKey);
+  if (existing) return existing;
+
+  const idempotencyKey = `web-${secureRandomHex()}`;
+  sessionStorage.setItem(storageKey, idempotencyKey);
+  return idempotencyKey;
+}
+
+function paypalSandboxApprovalUrl(value) {
+  let url;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error('PayPal no devolvió una URL de aprobación válida.');
+  }
+
+  const sandboxHost = url.hostname === 'sandbox.paypal.com'
+    || url.hostname.endsWith('.sandbox.paypal.com');
+  if (url.protocol !== 'https:' || !sandboxHost) {
+    throw new Error('El servidor no devolvió una URL de PayPal Sandbox.');
+  }
+  return url.href;
+}
+
+function clearPayPalReturnParameters() {
+  const url = new URL(window.location.href);
+  ['paypal', 'orderId', 'token', 'PayerID'].forEach((name) => url.searchParams.delete(name));
+  window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+}
+
+async function requestJson(url, options = {}) {
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    }
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload.error || 'No se pudo completar la solicitud.');
+  }
+  return payload;
+}
+
+function setSubmitting(value) {
+  state.submitting = value;
+  checkoutForm.querySelectorAll('button, input').forEach((control) => {
+    control.disabled = value;
+  });
+  checkoutForm.setAttribute('aria-busy', String(value));
+}
+
+async function loadRuntime() {
+  try {
+    state.runtime = await fetch('/api/runtime').then((response) => {
+      if (!response.ok) throw new Error('runtime unavailable');
+      return response.json();
+    });
+  } catch {
+    state.runtime = {
+      payments: {
+        paypal: 'disabled',
+        mercadopago: 'disabled'
+      }
+    };
+  }
 }
 
 async function loadCatalog() {
@@ -168,12 +289,84 @@ async function loadCatalog() {
     if (!response.ok) throw new Error('No se pudo cargar el catálogo.');
     const data = await response.json();
     state.products = data.courses;
+    const validProductIds = new Set(state.products.map((product) => product.id));
+    let persistedCart = [];
+    try {
+      const storedCart = JSON.parse(sessionStorage.getItem('gaby-cart') || '[]');
+      if (Array.isArray(storedCart)) persistedCart = storedCart;
+    } catch {
+      sessionStorage.removeItem('gaby-cart');
+    }
+    state.cart = new Set(persistedCart.filter((productId) => validProductIds.has(productId)));
     renderCatalog();
     renderCart();
   } catch (error) {
     grid.replaceChildren(createElement('p', 'error', `${error.message} Intentá nuevamente en unos minutos.`));
     grid.setAttribute('aria-busy', 'false');
   }
+}
+
+async function startPayPalCheckout() {
+  if (state.runtime?.payments?.paypal !== 'sandbox') {
+    formStatus.textContent = 'PayPal sandbox todavía no está disponible en este entorno.';
+    return;
+  }
+
+  const customer = getCheckoutCustomer();
+  const items = selectedProducts().map((product) => ({ productId: product.id }));
+  const idempotencyKey = await idempotencyKeyFor(customer, items);
+
+  formStatus.textContent = 'Creando la orden sandbox...';
+  const orderPayload = await requestJson('/api/orders', {
+    method: 'POST',
+    headers: { 'Idempotency-Key': idempotencyKey },
+    body: JSON.stringify({ customer, items })
+  });
+
+  formStatus.textContent = 'Abriendo PayPal sandbox...';
+  const checkoutPayload = await requestJson('/api/checkout/paypal', {
+    method: 'POST',
+    body: JSON.stringify({ orderId: orderPayload.order.id })
+  });
+
+  window.location.assign(paypalSandboxApprovalUrl(checkoutPayload.checkout?.approveUrl));
+}
+
+async function capturePayPalReturn() {
+  const params = new URLSearchParams(window.location.search);
+  const paypalStatus = params.get('paypal');
+  if (!paypalStatus) return;
+
+  const orderId = params.get('orderId');
+  const providerOrderId = params.get('token');
+
+  if (paypalStatus === 'cancel') {
+    clearPayPalReturnParameters();
+    formStatus.textContent = PAYPAL_RETURN_STATUSES.get('cancelled');
+    openCart();
+    return;
+  }
+
+  if (paypalStatus !== 'return' || !orderId || !providerOrderId) {
+    clearPayPalReturnParameters();
+    formStatus.textContent = 'No pudimos leer el retorno de PayPal sandbox. Revisá la orden desde el panel.';
+    openCart();
+    return;
+  }
+
+  try {
+    formStatus.textContent = 'Confirmando la captura sandbox con el servidor...';
+    const payload = await requestJson('/api/payments/paypal/capture', {
+      method: 'POST',
+      body: JSON.stringify({ orderId, providerOrderId })
+    });
+    formStatus.textContent = PAYPAL_RETURN_STATUSES.get(payload.payment.status)
+      || 'Captura sandbox registrada. Esperando conciliación por webhook.';
+    clearPayPalReturnParameters();
+  } catch (error) {
+    formStatus.textContent = `${error.message} Si PayPal ya aprobó el pago, esperá el webhook antes de reintentar.`;
+  }
+  openCart();
 }
 
 filterButtons.forEach((button) => {
@@ -211,15 +404,28 @@ cartDialog.addEventListener('click', (event) => {
   if (outside) cartDialog.close();
 });
 
-checkoutForm.addEventListener('submit', (event) => {
+checkoutForm.addEventListener('submit', async (event) => {
   event.preventDefault();
-  if (state.cart.size === 0) return;
+  if (state.cart.size === 0 || state.submitting) return;
   if (!checkoutForm.reportValidity()) return;
   const provider = event.submitter?.dataset.paymentProvider;
-  formStatus.textContent = provider === 'mercadopago'
-    ? 'El carrito está listo. Mercado Pago se habilitará cuando confirmemos los importes en ARS; esta demo no realiza cobros.'
-    : 'El carrito está listo. PayPal se conectará en la etapa de pagos sandbox; esta demo no realiza cobros.';
+  setSubmitting(true);
+  try {
+    if (provider === 'mercadopago') {
+      formStatus.textContent = 'Mercado Pago se habilitará cuando confirmemos los importes en ARS; no hay cobros por ese medio todavía.';
+      return;
+    }
+    if (provider === 'paypal') {
+      await startPayPalCheckout();
+      return;
+    }
+    formStatus.textContent = 'Elegí un medio de pago válido.';
+  } catch (error) {
+    formStatus.textContent = error.message;
+  } finally {
+    setSubmitting(false);
+  }
 });
 
 document.querySelector('#year').textContent = new Date().getFullYear();
-loadCatalog();
+Promise.all([loadCatalog(), loadRuntime()]).then(capturePayPalReturn);

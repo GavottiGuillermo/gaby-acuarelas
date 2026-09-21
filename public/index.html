@@ -80,7 +80,7 @@
             <div><small>Precio lanzamiento</small><strong>USD 5</strong></div>
             <button class="button primary" type="button" data-add-product="ebook-10-acuarelas-botanicas">Agregar al carrito</button>
           </div>
-          <p class="fine-print">La compra y descarga todavía no están habilitadas en esta demo.</p>
+          <p class="fine-print">PayPal funciona en sandbox para pruebas. La descarga se habilitará recién en la etapa de entrega.</p>
         </div>
       </section>
 
@@ -137,7 +137,7 @@
         <div class="steps">
           <article><span>01</span><h3>Elegí</h3><p>Filtrá por nivel y agregá una o varias clases al carrito.</p></article>
           <article><span>02</span><h3>Armá tu combo</h3><p>Combiná las propuestas que más te gusten. La promoción se confirmará más adelante.</p></article>
-          <article><span>03</span><h3>Dejanos tus datos</h3><p>Nombre, apellido y correo para preparar el futuro pedido.</p></article>
+          <article><span>03</span><h3>Dejanos tus datos</h3><p>Nombre, apellido y correo para preparar el pedido sandbox.</p></article>
           <article><span>04</span><h3>Recibí</h3><p>Después del pago aprobado llegará un correo con el acceso, y Gaby recibirá el aviso de venta.</p></article>
         </div>
       </section>
@@ -171,7 +171,7 @@
           <details><summary>¿Necesito experiencia previa?<span>＋</span></summary><p>No. Cada propuesta indica su nivel y las clases de nivel 1 acompañan tus primeros pasos.</p></details>
           <details><summary>¿Puedo elegir varias clases?<span>＋</span></summary><p>Sí. El carrito permite armar un combo libre. Habrá promociones por varias clases, aunque el descuento todavía está por definirse.</p></details>
           <details><summary>¿Cómo recibiré la compra?<span>＋</span></summary><p>En la versión final, después de confirmar el pago recibirás por correo el enlace de acceso. Su vigencia está pendiente de definición.</p></details>
-          <details><summary>¿La página ya procesa pagos?<span>＋</span></summary><p>No. Esta versión es una demo visual. PayPal se prevé para pagos en USD y Mercado Pago para ARS, cuando estén confirmados esos importes.</p></details>
+          <details><summary>¿La página ya procesa pagos?<span>＋</span></summary><p>PayPal está en modo sandbox para pruebas en USD: no son cobros reales ni habilitan entrega. Mercado Pago sigue pendiente hasta confirmar importes en ARS.</p></details>
         </div>
       </section>
     </main>
@@ -184,7 +184,7 @@
         <a href="https://www.youtube.com/channel/UCU07jIoFoo5Y7QbB82ydnBw" target="_blank" rel="noreferrer">YouTube</a>
         <a href="https://www.pinterest.es/gabyacuarelas/boards/" target="_blank" rel="noreferrer">Pinterest</a>
       </div>
-      <small>© <span id="year"></span> Gaby Acuarelas · Demo visual, sin pagos habilitados</small>
+      <small>© <span id="year"></span> Gaby Acuarelas · PayPal sandbox, sin cobros reales ni entrega automática</small>
     </footer>
 
     <dialog class="cart-dialog" id="cart-dialog" aria-labelledby="cart-title">
@@ -200,18 +200,18 @@
       </div>
       <form class="checkout-form" id="checkout-form">
         <fieldset>
-          <legend>Datos para el futuro pedido</legend>
+          <legend>Datos para el pedido de prueba</legend>
           <div class="field-row">
             <label>Nombre<input name="firstName" autocomplete="given-name" required></label>
             <label>Apellido<input name="lastName" autocomplete="family-name" required></label>
           </div>
           <label>Correo electrónico<input name="email" type="email" autocomplete="email" required></label>
         </fieldset>
-        <p class="demo-warning"><strong>Demo visual:</strong> no se realizará ningún cobro ni se enviarán estos datos.</p>
+        <p class="demo-warning"><strong>PayPal sandbox:</strong> crea una orden de prueba en USD, sin cobros reales ni entrega automática.</p>
         <div class="payment-actions" aria-label="Opciones de pago previstas">
           <button class="button primary cart-submit" type="submit" data-payment-provider="paypal">
             <span>Continuar con PayPal</span>
-            <small>Pago en USD</small>
+            <small>Sandbox en USD</small>
           </button>
           <button class="button payment-secondary cart-submit" type="submit" data-payment-provider="mercadopago">
             <span>Continuar con Mercado Pago</span>

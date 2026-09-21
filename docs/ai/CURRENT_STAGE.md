@@ -40,8 +40,7 @@ Integrar Mercado Pago y PayPal exclusivamente en ambientes sandbox, manteniendo 
 ## Prerrequisitos pendientes
 
 - Confirmar la lista de precios ARS antes de crear pagos Mercado Pago. No se permite una conversión automática ni un importe provisional para pagos.
-- Crear u obtener credenciales de prueba de Mercado Pago y guardarlas sólo en `.env` local o variables privadas del entorno. Las tres credenciales PayPal Sandbox ya están configuradas localmente y fueron aceptadas por OAuth.
-- Definir una URL HTTPS de pruebas para recibir webhooks sandbox sin exponer el servidor local de forma permanente.
+- Crear u obtener credenciales de prueba de Mercado Pago y guardarlas sólo en `.env` local o variables privadas del entorno. Las tres credenciales PayPal Sandbox están configuradas en variables privadas y fueron aceptadas por OAuth.
 
 ## Acciones no permitidas todavía
 
@@ -76,11 +75,15 @@ Integrar Mercado Pago y PayPal exclusivamente en ambientes sandbox, manteniendo 
 - Se creó desde el servidor una orden Sandbox real del ebook por USD 5, respaldada por una orden PostgreSQL identificada como prueba y conservada en estado `pending`.
 - Repetir el inicio del checkout devolvió la misma referencia PayPal con HTTP 200, sin crear un segundo intento; el primer inicio respondió HTTP 201.
 - Un pedido manipulado con moneda ARS e importe de un centavo fue rechazado con HTTP 400 antes de llamar al proveedor.
-- El Webhook ID configurado existe en la app Sandbox y está suscripto a todos los eventos, pero su URL apunta actualmente a GitHub Pages. Esa URL es estática y no puede recibir `POST`; debe reemplazarse por una URL HTTPS del servidor de pruebas antes de validar firmas y conciliación reales.
+- El webhook PayPal Sandbox apunta a `https://gabyacuarelas.com/api/webhooks/paypal` y `PAYPAL_WEBHOOK_ID` está configurado como variable privada en Render; resta probar la recepción y conciliación de eventos reales sin registrar sus cuerpos.
 - El backend informa PostgreSQL y PayPal Sandbox como configurados en `/health`.
 - `.env.example` contiene sólo nombres de variables y valores vacíos para proveedores.
 - `.env` está excluido por `.gitignore`; el escaneo del repositorio no encontró valores de credenciales PayPal.
 - `npm run check` aprobó sintaxis, 22 pruebas automatizadas, compuerta de etapa y catálogo el 2026-09-17; se omitió únicamente la prueba PostgreSQL opcional por no estar definida `TEST_DATABASE_URL` en esa ejecución.
+- El formulario del carrito crea la orden interna enviando sólo comprador e identificadores de producto, reutiliza una clave idempotente aleatoria protegida por una huella SHA-256 y crea el checkout enviando únicamente `orderId`.
+- El retorno `paypal=return` usa el `token` como referencia PayPal para solicitar la captura y comunica `pending_webhook`; no interpreta el retorno del navegador como aprobación.
+- La interfaz valida que la redirección recibida pertenezca a PayPal Sandbox, mantiene Mercado Pago bloqueado hasta contar con precios ARS y comunica que no existen cobros reales ni entrega automática.
+- `npm run check` aprobó sintaxis, 22 pruebas automatizadas, compuerta de etapa y catálogo el 2026-09-20; se omitió únicamente la prueba PostgreSQL opcional porque `TEST_DATABASE_URL` no estaba configurada.
 
 ## Regla para cerrar esta etapa
 
