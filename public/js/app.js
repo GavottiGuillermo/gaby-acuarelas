@@ -306,13 +306,12 @@ async function loadCatalog() {
   }
 }
 
-async function startPayPalCheckout() {
+async function startPayPalCheckout(customer) {
   if (state.runtime?.payments?.paypal !== 'sandbox') {
     formStatus.textContent = 'PayPal sandbox todavía no está disponible en este entorno.';
     return;
   }
 
-  const customer = getCheckoutCustomer();
   const items = selectedProducts().map((product) => ({ productId: product.id }));
   const idempotencyKey = await idempotencyKeyFor(customer, items);
 
@@ -409,6 +408,7 @@ checkoutForm.addEventListener('submit', async (event) => {
   if (state.cart.size === 0 || state.submitting) return;
   if (!checkoutForm.reportValidity()) return;
   const provider = event.submitter?.dataset.paymentProvider;
+  const customer = provider === 'paypal' ? getCheckoutCustomer() : null;
   setSubmitting(true);
   try {
     if (provider === 'mercadopago') {
@@ -416,7 +416,7 @@ checkoutForm.addEventListener('submit', async (event) => {
       return;
     }
     if (provider === 'paypal') {
-      await startPayPalCheckout();
+      await startPayPalCheckout(customer);
       return;
     }
     formStatus.textContent = 'Elegí un medio de pago válido.';

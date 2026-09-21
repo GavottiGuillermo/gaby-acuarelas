@@ -83,6 +83,7 @@ Integrar Mercado Pago y PayPal exclusivamente en ambientes sandbox, manteniendo 
 - El formulario del carrito crea la orden interna enviando sólo comprador e identificadores de producto, reutiliza una clave idempotente aleatoria protegida por una huella SHA-256 y crea el checkout enviando únicamente `orderId`.
 - El retorno `paypal=return` usa el `token` como referencia PayPal para solicitar la captura y comunica `pending_webhook`; no interpreta el retorno del navegador como aprobación.
 - La interfaz valida que la redirección recibida pertenezca a PayPal Sandbox, mantiene Mercado Pago bloqueado hasta contar con precios ARS y comunica que no existen cobros reales ni entrega automática.
+- Se corrigió el envío del comprador para tomar una copia de nombre, apellido y correo antes de deshabilitar los controles durante la solicitud; los campos deshabilitados no participan de `FormData`.
 - `npm run check` aprobó sintaxis, 22 pruebas automatizadas, compuerta de etapa y catálogo el 2026-09-20; se omitió únicamente la prueba PostgreSQL opcional porque `TEST_DATABASE_URL` no estaba configurada.
 
 ## Regla para cerrar esta etapa
