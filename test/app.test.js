@@ -74,6 +74,12 @@ test('crea una orden validada y devuelve 201 sin aceptar precios del navegador',
     assert.equal(response.status, 201);
     assert.equal(payload.order.currency, 'USD');
     assert.equal(payload.order.totalAmountCents, 500);
+
+    repository.findById = async () => ({ ...payload.order, status: 'approved' });
+    const statusResponse = await fetch(`${baseUrl}/api/orders/${payload.order.id}`);
+    assert.equal(statusResponse.status, 200);
+    assert.equal(statusResponse.headers.get('cache-control'), 'no-store');
+    assert.equal((await statusResponse.json()).order.status, 'approved');
   });
 });
 
@@ -92,6 +98,18 @@ test('el checkout continúa bloqueado sin proveedores sandbox configurados', asy
 
 test('expone checkout, captura y webhook PayPal sólo mediante el servicio configurado', async () => {
   const calls = [];
+  const logs = [];
+  const logger = {
+    info(message, metadata) {
+      logs.push(['info', message, metadata]);
+    },
+    warn(message, metadata) {
+      logs.push(['warn', message, metadata]);
+    },
+    error(message, metadata) {
+      logs.push(['error', message, metadata]);
+    }
+  };
   const paymentService = {
     async createPayPalCheckout(body) {
       calls.push(['checkout', body]);
@@ -108,10 +126,10 @@ test('expone checkout, captura y webhook PayPal sólo mediante el servicio confi
     },
     async processPayPalWebhook({ event, rawBody }) {
       calls.push(['webhook', event, rawBody.toString('utf8')]);
-      return { duplicate: false, processed: true };
+      return { duplicate: false, processed: true, processingStatus: 'processed' };
     }
   };
-  const app = createApp({ catalog, paymentService, publicDir });
+  const app = createApp({ catalog, paymentService, publicDir, logger });
 
   await withServer(app, async (baseUrl) => {
     const checkoutResponse = await fetch(`${baseUrl}/api/checkout/paypal`, {
@@ -142,5 +160,17 @@ test('expone checkout, captura y webhook PayPal sólo mediante el servicio confi
     });
     assert.equal(webhookResponse.status, 200);
     assert.equal(calls[2][2], webhookBody);
+    assert.deepEqual(logs, [[
+      'info',
+      'paypal_webhook_processed',
+      {
+        eventId: 'WH-1',
+        eventType: 'PAYMENT.CAPTURE.COMPLETED',
+        duplicate: false,
+        processed: true,
+        processingStatus: 'processed'
+      }
+    ]]);
+    assert.doesNotMatch(JSON.stringify(logs), /rawBody|headers|transmission/i);
   });
 });

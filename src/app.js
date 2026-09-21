@@ -3,7 +3,7 @@ const express = require('express');
 const { OrderError } = require('./orders/errors');
 const { PaymentError } = require('./payments/errors');
 
-function createApp({ catalog, orderService = null, paymentService = null, publicDir }) {
+function createApp({ catalog, orderService = null, paymentService = null, publicDir, logger = console }) {
   const app = express();
 
   app.disable('x-powered-by');
@@ -35,8 +35,18 @@ function createApp({ catalog, orderService = null, paymentService = null, public
         event,
         rawBody
       });
+      logger.info('paypal_webhook_processed', {
+        eventId: event.id,
+        eventType: event.event_type,
+        duplicate: Boolean(result.duplicate),
+        processed: Boolean(result.processed),
+        processingStatus: result.processingStatus || (result.duplicate ? 'duplicate' : 'unknown')
+      });
       return res.status(200).json({ received: true, duplicate: result.duplicate });
     } catch (error) {
+      logger.warn('paypal_webhook_rejected', {
+        code: error instanceof SyntaxError ? 'invalid_json' : (error?.code || 'unknown')
+      });
       if (error instanceof SyntaxError) {
         return res.status(400).json({ error: 'El JSON enviado no es válido.', code: 'invalid_json' });
       }
@@ -102,6 +112,7 @@ function createApp({ catalog, orderService = null, paymentService = null, public
 
     try {
       const order = await orderService.findById(req.params.id);
+      res.setHeader('Cache-Control', 'no-store');
       return res.json({ order });
     } catch (error) {
       return next(error);
@@ -165,7 +176,7 @@ function createApp({ catalog, orderService = null, paymentService = null, public
       return res.status(400).json({ error: 'El JSON enviado no es válido.', code: 'invalid_json' });
     }
 
-    console.error('request_error', { name: error?.name || 'Error', code: error?.code || 'unknown' });
+    logger.error('request_error', { name: error?.name || 'Error', code: error?.code || 'unknown' });
     return res.status(500).json({ error: 'Ocurrió un error interno.', code: 'internal_error' });
   });
 

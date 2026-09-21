@@ -85,6 +85,12 @@ Integrar Mercado Pago y PayPal exclusivamente en ambientes sandbox, manteniendo 
 - La interfaz valida que la redirección recibida pertenezca a PayPal Sandbox, mantiene Mercado Pago bloqueado hasta contar con precios ARS y comunica que no existen cobros reales ni entrega automática.
 - Se corrigió el envío del comprador para tomar una copia de nombre, apellido y correo antes de deshabilitar los controles durante la solicitud; los campos deshabilitados no participan de `FormData`.
 - `npm run check` aprobó sintaxis, 22 pruebas automatizadas, compuerta de etapa y catálogo el 2026-09-20; se omitió únicamente la prueba PostgreSQL opcional porque `TEST_DATABASE_URL` no estaba configurada.
+- PayPal Sandbox completó el 2026-09-21 dos capturas de USD 5 y entregó con estado exitoso los eventos reales `PAYMENT.CAPTURE.COMPLETED`; la consulta posterior de Orders v2 confirma que el servidor ejecutó la conciliación sin depender del retorno del navegador.
+- La interfaz consulta temporalmente el estado interno después de la captura y sólo muestra la confirmación cuando la orden quedó `approved` por efecto del webhook firmado; distingue además rechazo, cancelación, devolución, demora y error de consulta.
+- El identificador de una orden pendiente queda en `sessionStorage` para recuperar la consulta tras una recarga, sin guardar credenciales, datos personales ni información financiera.
+- Render registra para cada webhook solamente identificador, tipo y resultado de procesamiento, y para rechazos solamente el código seguro; nunca escribe encabezados, secretos ni el cuerpo recibido.
+- Las consultas del estado de orden usan `Cache-Control: no-store`, y las pruebas automatizadas cubren la traducción de webhooks PayPal a aprobado, pendiente, rechazado y cancelado.
+- `npm run check` aprobó sintaxis, 23 pruebas automatizadas, compuerta de etapa y catálogo el 2026-09-21; se omitió únicamente la prueba PostgreSQL opcional porque `TEST_DATABASE_URL` no estaba configurada.
 
 ## Regla para cerrar esta etapa
 

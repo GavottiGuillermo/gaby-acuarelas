@@ -13,9 +13,30 @@ const checkoutForm = document.querySelector('#checkout-form');
 const formStatus = document.querySelector('#form-status');
 
 const PAGE_SIZE = 12;
+const PAYPAL_ORDER_POLL_ATTEMPTS = 15;
+const PAYPAL_ORDER_POLL_INTERVAL_MS = 1000;
+const PAYPAL_PENDING_ORDER_KEY = 'gaby-paypal-pending-order';
 const PAYPAL_RETURN_STATUSES = new Map([
   ['pending_webhook', 'PayPal registró la captura sandbox. La orden queda pendiente hasta recibir y conciliar el webhook firmado.'],
   ['cancelled', 'Cancelaste el pago sandbox en PayPal. Podés volver a intentarlo desde el carrito.']
+]);
+const PAYPAL_ORDER_STATUSES = new Map([
+  ['approved', {
+    tone: 'success',
+    message: 'Pago sandbox confirmado mediante el webhook firmado de PayPal. Es una prueba: no hubo cobro real ni entrega automática.'
+  }],
+  ['rejected', {
+    tone: 'error',
+    message: 'PayPal informó que el pago sandbox fue rechazado. La orden no fue aprobada y no se realizará ninguna entrega.'
+  }],
+  ['cancelled', {
+    tone: 'warning',
+    message: 'PayPal informó que el pago sandbox fue cancelado. La orden no fue aprobada y podés iniciar una nueva prueba.'
+  }],
+  ['refunded', {
+    tone: 'warning',
+    message: 'PayPal informó la devolución del pago sandbox. No se realizará ninguna entrega automática.'
+  }]
 ]);
 const state = {
   products: [],
@@ -42,6 +63,11 @@ function createElement(tagName, className, text) {
   if (className) element.className = className;
   if (text !== undefined) element.textContent = text;
   return element;
+}
+
+function showFormStatus(message, tone = 'info') {
+  formStatus.textContent = message;
+  formStatus.dataset.tone = message ? tone : '';
 }
 
 function courseCard(course, index) {
@@ -122,7 +148,7 @@ function toggleCart(productId) {
   if (state.cart.has(productId)) state.cart.delete(productId);
   else state.cart.add(productId);
   sessionStorage.setItem('gaby-cart', JSON.stringify([...state.cart]));
-  formStatus.textContent = '';
+  showFormStatus('');
   updateAllAddButtons();
   renderCart();
 }
@@ -254,9 +280,98 @@ async function requestJson(url, options = {}) {
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(payload.error || 'No se pudo completar la solicitud.');
+    const error = new Error(payload.error || 'No se pudo completar la solicitud.');
+    error.code = payload.code || 'request_failed';
+    error.status = response.status;
+    throw error;
   }
   return payload;
+}
+
+function rememberPendingPayPalOrder(orderId) {
+  try {
+    sessionStorage.setItem(PAYPAL_PENDING_ORDER_KEY, orderId);
+  } catch {
+    // La consulta inmediata sigue funcionando aunque el navegador bloquee el almacenamiento.
+  }
+}
+
+function pendingPayPalOrder() {
+  try {
+    return sessionStorage.getItem(PAYPAL_PENDING_ORDER_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function forgetPendingPayPalOrder() {
+  try {
+    sessionStorage.removeItem(PAYPAL_PENDING_ORDER_KEY);
+  } catch {
+    // No hay estado sensible: sólo se intenta limpiar un identificador interno.
+  }
+}
+
+function wait(milliseconds) {
+  return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+}
+
+async function waitForPayPalOrder(orderId) {
+  let lastOrder = null;
+  let lastError = null;
+
+  for (let attempt = 0; attempt < PAYPAL_ORDER_POLL_ATTEMPTS; attempt += 1) {
+    try {
+      const payload = await requestJson(`/api/orders/${encodeURIComponent(orderId)}`);
+      if (!payload.order || typeof payload.order.status !== 'string') {
+        throw new Error('El servidor devolvió un estado de orden no válido.');
+      }
+      lastOrder = payload.order;
+      lastError = null;
+      if (lastOrder.status !== 'pending') return lastOrder;
+    } catch (error) {
+      lastError = error;
+    }
+
+    if (attempt < PAYPAL_ORDER_POLL_ATTEMPTS - 1) {
+      await wait(PAYPAL_ORDER_POLL_INTERVAL_MS);
+    }
+  }
+
+  if (!lastOrder && lastError) throw lastError;
+  return lastOrder;
+}
+
+async function showPayPalOrderResult(orderId, captureError = null) {
+  showFormStatus('Esperando la confirmación del webhook firmado de PayPal...', 'pending');
+
+  try {
+    const order = await waitForPayPalOrder(orderId);
+    const status = PAYPAL_ORDER_STATUSES.get(order?.status);
+    if (status) {
+      forgetPendingPayPalOrder();
+      showFormStatus(status.message, status.tone);
+      return;
+    }
+
+    if (captureError && captureError.code !== 'payment_attempt_already_processed') {
+      showFormStatus(
+        `${captureError.message} La orden sigue pendiente y no se considera pagada; revisá el estado antes de volver a intentarlo.`,
+        'error'
+      );
+      return;
+    }
+
+    showFormStatus(
+      'La captura sandbox sigue pendiente de conciliación. No se considera pagada hasta que llegue el webhook firmado; podés volver a abrir esta página para consultar nuevamente.',
+      'pending'
+    );
+  } catch {
+    showFormStatus(
+      'No pudimos consultar la confirmación final. El regreso desde PayPal no aprueba la orden; revisá el estado antes de volver a intentarlo.',
+      'error'
+    );
+  }
 }
 
 function setSubmitting(value) {
@@ -308,21 +423,21 @@ async function loadCatalog() {
 
 async function startPayPalCheckout(customer) {
   if (state.runtime?.payments?.paypal !== 'sandbox') {
-    formStatus.textContent = 'PayPal sandbox todavía no está disponible en este entorno.';
+    showFormStatus('PayPal sandbox todavía no está disponible en este entorno.', 'error');
     return;
   }
 
   const items = selectedProducts().map((product) => ({ productId: product.id }));
   const idempotencyKey = await idempotencyKeyFor(customer, items);
 
-  formStatus.textContent = 'Creando la orden sandbox...';
+  showFormStatus('Creando la orden sandbox...', 'pending');
   const orderPayload = await requestJson('/api/orders', {
     method: 'POST',
     headers: { 'Idempotency-Key': idempotencyKey },
     body: JSON.stringify({ customer, items })
   });
 
-  formStatus.textContent = 'Abriendo PayPal sandbox...';
+  showFormStatus('Abriendo PayPal sandbox...', 'pending');
   const checkoutPayload = await requestJson('/api/checkout/paypal', {
     method: 'POST',
     body: JSON.stringify({ orderId: orderPayload.order.id })
@@ -334,38 +449,66 @@ async function startPayPalCheckout(customer) {
 async function capturePayPalReturn() {
   const params = new URLSearchParams(window.location.search);
   const paypalStatus = params.get('paypal');
-  if (!paypalStatus) return;
+  if (!paypalStatus) {
+    const pendingOrderId = pendingPayPalOrder();
+    if (!pendingOrderId) return;
+    openCart();
+    setSubmitting(true);
+    try {
+      await showPayPalOrderResult(pendingOrderId);
+    } finally {
+      setSubmitting(false);
+    }
+    return;
+  }
 
   const orderId = params.get('orderId');
   const providerOrderId = params.get('token');
 
   if (paypalStatus === 'cancel') {
     clearPayPalReturnParameters();
-    formStatus.textContent = PAYPAL_RETURN_STATUSES.get('cancelled');
+    forgetPendingPayPalOrder();
+    showFormStatus(PAYPAL_RETURN_STATUSES.get('cancelled'), 'warning');
     openCart();
     return;
   }
 
   if (paypalStatus !== 'return' || !orderId || !providerOrderId) {
     clearPayPalReturnParameters();
-    formStatus.textContent = 'No pudimos leer el retorno de PayPal sandbox. Revisá la orden desde el panel.';
+    showFormStatus(
+      'No pudimos leer el retorno de PayPal sandbox. La orden no se considera pagada; revisala antes de volver a intentarlo.',
+      'error'
+    );
     openCart();
     return;
   }
 
+  rememberPendingPayPalOrder(orderId);
+  openCart();
+  setSubmitting(true);
+  let captureError = null;
   try {
-    formStatus.textContent = 'Confirmando la captura sandbox con el servidor...';
+    showFormStatus('Confirmando la captura sandbox con el servidor...', 'pending');
     const payload = await requestJson('/api/payments/paypal/capture', {
       method: 'POST',
       body: JSON.stringify({ orderId, providerOrderId })
     });
-    formStatus.textContent = PAYPAL_RETURN_STATUSES.get(payload.payment.status)
-      || 'Captura sandbox registrada. Esperando conciliación por webhook.';
-    clearPayPalReturnParameters();
+    showFormStatus(
+      PAYPAL_RETURN_STATUSES.get(payload.payment.status)
+        || 'Captura sandbox registrada. Esperando conciliación por webhook.',
+      'pending'
+    );
   } catch (error) {
-    formStatus.textContent = `${error.message} Si PayPal ya aprobó el pago, esperá el webhook antes de reintentar.`;
+    captureError = error;
+  } finally {
+    clearPayPalReturnParameters();
   }
-  openCart();
+
+  try {
+    await showPayPalOrderResult(orderId, captureError);
+  } finally {
+    setSubmitting(false);
+  }
 }
 
 filterButtons.forEach((button) => {
@@ -412,16 +555,16 @@ checkoutForm.addEventListener('submit', async (event) => {
   setSubmitting(true);
   try {
     if (provider === 'mercadopago') {
-      formStatus.textContent = 'Mercado Pago se habilitará cuando confirmemos los importes en ARS; no hay cobros por ese medio todavía.';
+      showFormStatus('Mercado Pago se habilitará cuando confirmemos los importes en ARS; no hay cobros por ese medio todavía.', 'warning');
       return;
     }
     if (provider === 'paypal') {
       await startPayPalCheckout(customer);
       return;
     }
-    formStatus.textContent = 'Elegí un medio de pago válido.';
+    showFormStatus('Elegí un medio de pago válido.', 'error');
   } catch (error) {
-    formStatus.textContent = error.message;
+    showFormStatus(error.message, 'error');
   } finally {
     setSubmitting(false);
   }

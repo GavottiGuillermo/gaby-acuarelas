@@ -159,6 +159,39 @@ test('procesa un webhook firmado, conciliado e idempotente', async () => {
   assert.match(applied[0].payloadSha256, /^[0-9a-f]{64}$/);
 });
 
+test('mantiene pendiente o aplica rechazo y cancelación sólo mediante webhooks conciliados', async () => {
+  const cases = [
+    ['PAYMENT.CAPTURE.PENDING', 'pending', null],
+    ['PAYMENT.CAPTURE.DENIED', 'rejected', 'rejected'],
+    ['CHECKOUT.ORDER.VOIDED', 'cancelled', 'cancelled']
+  ];
+
+  for (const [eventType, attemptStatus, orderStatus] of cases) {
+    const fixture = createFixture();
+    const event = eventType === 'CHECKOUT.ORDER.VOIDED'
+      ? {
+          id: `WH-${attemptStatus.toUpperCase()}`,
+          event_type: eventType,
+          resource_type: 'checkout-order',
+          resource: { id: providerOrderId }
+        }
+      : {
+          ...completedEvent(`WH-${attemptStatus.toUpperCase()}`),
+          event_type: eventType
+        };
+
+    const result = await fixture.service.processPayPalWebhook({
+      headers: {},
+      event,
+      rawBody: Buffer.from(JSON.stringify(event))
+    });
+
+    assert.equal(result.processed, true);
+    assert.equal(fixture.applied[0].attemptStatus, attemptStatus);
+    assert.equal(fixture.applied[0].orderStatus, orderStatus);
+  }
+});
+
 test('rechaza firma inválida y diferencias de importe antes de aprobar', async () => {
   const invalidSignature = createFixture();
   invalidSignature.paypalClient.verifyWebhook = async () => false;

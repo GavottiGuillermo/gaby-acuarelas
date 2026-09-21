@@ -1275,6 +1275,30 @@ footer > small {
   font-size: 0.7rem;
 }
 
+.form-status[data-tone]:not([data-tone=""]) {
+  padding: 11px 13px;
+  border: 1px solid transparent;
+}
+
+.form-status[data-tone="pending"] {
+  color: #6b4a06;
+  background: #fff4d9;
+  border-color: rgba(215, 154, 39, 0.32);
+}
+
+.form-status[data-tone="success"] {
+  color: var(--forest-deep);
+  background: #e4eee0;
+  border-color: rgba(14, 73, 59, 0.24);
+}
+
+.form-status[data-tone="warning"],
+.form-status[data-tone="error"] {
+  color: var(--berry-deep);
+  background: #f8e2e3;
+  border-color: rgba(166, 49, 91, 0.24);
+}
+
 @keyframes rise {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: none; }
