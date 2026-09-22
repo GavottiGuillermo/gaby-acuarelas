@@ -25,8 +25,10 @@ const purchaseProcessingOrder = document.querySelector('#purchase-processing-ord
 const purchaseProcessingSummary = document.querySelector('#purchase-processing-summary');
 
 const PAGE_SIZE = 12;
-const PAYPAL_ORDER_POLL_ATTEMPTS = 15;
-const PAYPAL_ORDER_POLL_INTERVAL_MS = 1000;
+const PAYPAL_ORDER_FAST_POLL_ATTEMPTS = 15;
+const PAYPAL_ORDER_FAST_POLL_INTERVAL_MS = 1000;
+const PAYPAL_ORDER_BACKGROUND_POLL_ATTEMPTS = 57;
+const PAYPAL_ORDER_BACKGROUND_POLL_INTERVAL_MS = 5000;
 const PAYPAL_PENDING_ORDER_KEY = 'gaby-paypal-pending-order';
 const PAYPAL_CANCELLED_MESSAGE = 'Cancelaste el pago sandbox en PayPal. Podés volver a intentarlo desde el carrito.';
 const PAYPAL_ORDER_STATUSES = new Map([
@@ -52,7 +54,7 @@ const PAYPAL_PROCESSING_COPY = {
   delayed: {
     title: 'Tu pago sigue en proceso',
     description: 'PayPal todavía no envió la confirmación final. En ocasiones puede demorar unos minutos.',
-    note: 'No vuelvas a pagar. Podés cerrar esta ventana: cuando regreses, consultaremos nuevamente el estado de la orden.'
+    note: 'No vuelvas a pagar. Podés cerrar esta ventana y seguir navegando: continuaremos consultando y te avisaremos cuando se confirme.'
   },
   error: {
     title: 'Todavía no pudimos confirmar el pago',
@@ -435,11 +437,13 @@ function wait(milliseconds) {
   return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 }
 
-async function waitForPayPalOrder(orderId) {
+async function waitForPayPalOrder(orderId, { continueInBackground = true } = {}) {
   let lastOrder = null;
   let lastError = null;
+  const totalAttempts = PAYPAL_ORDER_FAST_POLL_ATTEMPTS
+    + (continueInBackground ? PAYPAL_ORDER_BACKGROUND_POLL_ATTEMPTS : 0);
 
-  for (let attempt = 0; attempt < PAYPAL_ORDER_POLL_ATTEMPTS; attempt += 1) {
+  for (let attempt = 0; attempt < totalAttempts; attempt += 1) {
     try {
       const payload = await requestJson(`/api/orders/${encodeURIComponent(orderId)}`);
       if (!payload.order || typeof payload.order.status !== 'string') {
@@ -453,8 +457,16 @@ async function waitForPayPalOrder(orderId) {
       lastError = error;
     }
 
-    if (attempt < PAYPAL_ORDER_POLL_ATTEMPTS - 1) {
-      await wait(PAYPAL_ORDER_POLL_INTERVAL_MS);
+    const fastPollingFinished = attempt === PAYPAL_ORDER_FAST_POLL_ATTEMPTS - 1;
+    if (continueInBackground && fastPollingFinished) {
+      showPurchaseProcessing('delayed', lastOrder, false);
+    }
+
+    if (attempt < totalAttempts - 1) {
+      const interval = attempt < PAYPAL_ORDER_FAST_POLL_ATTEMPTS - 1
+        ? PAYPAL_ORDER_FAST_POLL_INTERVAL_MS
+        : PAYPAL_ORDER_BACKGROUND_POLL_INTERVAL_MS;
+      await wait(interval);
     }
   }
 
@@ -466,7 +478,9 @@ async function showPayPalOrderResult(orderId, captureError = null) {
   showPurchaseProcessing('waiting');
 
   try {
-    const order = await waitForPayPalOrder(orderId);
+    const continueInBackground = !captureError
+      || captureError.code === 'payment_attempt_already_processed';
+    const order = await waitForPayPalOrder(orderId, { continueInBackground });
     if (order?.status === 'approved') {
       forgetPendingPayPalOrder();
       showPurchaseSuccess(order);
