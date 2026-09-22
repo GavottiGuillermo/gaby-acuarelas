@@ -16,8 +16,8 @@ La maqueta preliminar incluye:
 - ilustraciones originales generadas para esta presentación;
 - catálogo real de 40 clases compatible con GitHub Pages y reutilizado por Express;
 - ebook `10 Acuarelas Botánicas - Paso a paso` a USD 5;
-- precios visibles en USD y carrito visual para armar combos libres;
-- presentación del futuro flujo con PayPal en USD y Mercado Pago en ARS, todavía sin cobros;
+- precios visibles en USD y ARS, con conversión administrada y redondeo a múltiplos de $100, y carrito para armar combos libres;
+- presentación del flujo con PayPal Sandbox en USD y precios ARS preparados para la futura integración de Mercado Pago, todavía sin cobros por ese medio;
 - enlaces a recursos gratuitos que Gaby ya comparte con su comunidad;
 - variables preparadas para pagos, correo y Dropbox;
 - configuración inicial para Render y publicación automática en GitHub Pages.

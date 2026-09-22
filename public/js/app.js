@@ -7,6 +7,7 @@ const cartItems = document.querySelector('#cart-items');
 const cartEmpty = document.querySelector('#cart-empty');
 const cartSummary = document.querySelector('#cart-summary');
 const cartTotal = document.querySelector('#cart-total');
+const cartTotalArs = document.querySelector('#cart-total-ars');
 const cartPromotion = document.querySelector('#cart-promotion');
 const cartCount = document.querySelector('#cart-count');
 const checkoutForm = document.querySelector('#checkout-form');
@@ -23,6 +24,8 @@ const purchaseProcessingDescription = document.querySelector('#purchase-processi
 const purchaseProcessingNote = document.querySelector('#purchase-processing-note');
 const purchaseProcessingOrder = document.querySelector('#purchase-processing-order');
 const purchaseProcessingSummary = document.querySelector('#purchase-processing-summary');
+const ebookPriceArs = document.querySelector('#ebook-price-ars');
+const mercadoPagoPrice = document.querySelector('#mercadopago-price');
 
 const PAGE_SIZE = 12;
 const PAYPAL_ORDER_FAST_POLL_ATTEMPTS = 15;
@@ -69,6 +72,8 @@ const state = {
   filter: 'all',
   visible: PAGE_SIZE,
   cart: new Set(),
+  pricesArs: new Map(),
+  pricing: null,
   runtime: {
     payments: {
       paypal: 'disabled',
@@ -85,6 +90,16 @@ const usd = new Intl.NumberFormat('en-US', {
   currency: 'USD',
   maximumFractionDigits: 0
 });
+
+const ars = new Intl.NumberFormat('es-AR', {
+  style: 'currency',
+  currency: 'ARS',
+  maximumFractionDigits: 0
+});
+
+function productPriceArs(product) {
+  return state.pricesArs.get(product.id) || null;
+}
 
 function createElement(tagName, className, text) {
   const element = document.createElement(tagName);
@@ -121,8 +136,10 @@ function courseCard(course, index) {
 
   const footer = createElement('div', 'course-footer');
   const price = createElement('div', 'course-price');
-  price.appendChild(createElement('span', '', 'Precio en dólares'));
+  price.appendChild(createElement('span', '', 'Precio'));
   price.appendChild(createElement('strong', '', usd.format(course.priceUsd)));
+  const priceArs = productPriceArs(course);
+  if (priceArs) price.appendChild(createElement('small', 'price-ars', ars.format(priceArs)));
 
   const button = createElement('button', 'card-action');
   button.type = 'button';
@@ -205,7 +222,10 @@ function renderCart() {
       : `${product.classTypeLabel} · ${product.levelLabel} · ${product.durationLabel}`));
 
     const actions = createElement('div', 'cart-item-actions');
-    const price = createElement('span', 'cart-item-price', usd.format(product.priceUsd));
+    const price = createElement('span', 'cart-item-price');
+    price.appendChild(createElement('strong', '', usd.format(product.priceUsd)));
+    const priceArs = productPriceArs(product);
+    if (priceArs) price.appendChild(createElement('small', '', ars.format(priceArs)));
     const remove = createElement('button', 'cart-remove', 'Quitar');
     remove.type = 'button';
     remove.setAttribute('aria-label', `Quitar ${product.title}`);
@@ -217,6 +237,15 @@ function renderCart() {
 
   const total = selected.reduce((sum, product) => sum + product.priceUsd, 0);
   cartTotal.textContent = usd.format(total);
+  const arsPrices = selected.map(productPriceArs);
+  const hasArsTotal = selected.length > 0 && arsPrices.every(Boolean);
+  cartTotalArs.hidden = !hasArsTotal;
+  cartTotalArs.textContent = hasArsTotal
+    ? ars.format(arsPrices.reduce((sum, amount) => sum + amount, 0))
+    : '';
+  mercadoPagoPrice.textContent = hasArsTotal
+    ? `${cartTotalArs.textContent} · Sandbox pendiente`
+    : 'Precio ARS no disponible';
   const selectedCourses = selected.filter((product) => product.type === 'course').length;
   cartPromotion.textContent = selectedCourses >= 2
     ? 'Ya armaste un combo. El descuento se definirá próximamente; el subtotal todavía usa precios de lista.'
@@ -595,6 +624,30 @@ async function loadRuntime() {
   }
 }
 
+async function loadPricing() {
+  try {
+    const response = await fetch('/api/pricing', { cache: 'no-store' });
+    if (!response.ok) throw new Error('pricing unavailable');
+    const payload = await response.json();
+    const products = Array.isArray(payload.pricing?.products) ? payload.pricing.products : [];
+    state.pricing = payload.pricing;
+    state.pricesArs = new Map(products
+      .filter((item) => typeof item.productId === 'string' && Number(item.amount) > 0)
+      .map((item) => [item.productId, Number(item.amount)]));
+  } catch {
+    state.pricing = null;
+    state.pricesArs = new Map();
+  }
+
+  const ebookArs = state.pricesArs.get('ebook-10-acuarelas-botanicas');
+  ebookPriceArs.hidden = !ebookArs;
+  ebookPriceArs.textContent = ebookArs ? ars.format(ebookArs) : '';
+  if (state.products.length > 0) {
+    renderCatalog();
+    renderCart();
+  }
+}
+
 async function loadCatalog() {
   try {
     const response = await fetch('catalog.json');
@@ -777,4 +830,4 @@ checkoutForm.addEventListener('submit', async (event) => {
 });
 
 document.querySelector('#year').textContent = new Date().getFullYear();
-Promise.all([loadCatalog(), loadRuntime()]).then(capturePayPalReturn);
+Promise.all([loadCatalog(), loadRuntime(), loadPricing()]).then(capturePayPalReturn);

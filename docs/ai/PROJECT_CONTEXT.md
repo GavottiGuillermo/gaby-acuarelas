@@ -21,7 +21,7 @@ La voz es argentina, cercana, alentadora y concreta. Se usa voseo. Se evita el t
 - Se recibieron y relevaron las 14 páginas del catálogo de Canva: contienen 40 clases individuales, tres niveles y reglas generales de precio en USD.
 - Gaby aprobó vender el ebook `10 Acuarelas Botánicas - Paso a paso` a USD 5.
 - La transcripción está documentada en `COURSE_CATALOG.md` y `course-catalog.json` y fue autorizada para la demo estática.
-- La demo usa USD, carrito y combos libres; el descuento promocional queda pendiente.
+- La web muestra USD y su precio ARS calculado con la última cotización válida obtenida de DolarApi, redondeado hacia arriba a múltiplos de $100. Si falla la actualización conserva el valor almacenado; tres fallos consecutivos o más de diez días activan una alerta administrativa. El carrito admite combos libres y el descuento promocional queda pendiente.
 - Las imágenes del catálogo se usan provisionalmente hasta recibir archivos originales de mayor calidad.
 
 ## Catálogo recibido
@@ -40,7 +40,7 @@ La voz es argentina, cercana, alentadora y concreta. Se usa voseo. Se evita el t
 - GitHub Pages para validación visual inicial.
 - Render pago, en su plan económico adecuado, para producción.
 - Cloudflare para dominio, TLS y controles perimetrales.
-- Mercado Pago en ARS.
+- Mercado Pago en ARS; los importes se calculan en servidor y se congelan en la orden antes de crear el pago.
 - PayPal en USD.
 - PostgreSQL para órdenes, pagos y entregas.
 - Correo automático después de confirmar el pago.

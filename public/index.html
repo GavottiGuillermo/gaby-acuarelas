@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&amp;family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&amp;family=DM+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css?v=20260922-2">
+    <link rel="stylesheet" href="css/styles.css?v=20260922-3">
   </head>
   <body>
     <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -77,10 +77,10 @@
             <li>Propuestas para distintos niveles</li>
           </ul>
           <div class="ebook-action">
-            <div><small>Precio lanzamiento</small><strong>USD 5</strong></div>
+            <div><small>Precio lanzamiento</small><strong>USD 5</strong><span class="price-ars" id="ebook-price-ars" hidden></span></div>
             <button class="button primary" type="button" data-add-product="ebook-10-acuarelas-botanicas">Agregar al carrito</button>
           </div>
-          <p class="fine-print">PayPal funciona en sandbox para pruebas. La descarga se habilitará recién en la etapa de entrega.</p>
+          <p class="fine-print">El precio ARS se calcula con la cotización de venta vigente y se redondea hacia arriba a múltiplos de $100. PayPal funciona en sandbox para pruebas.</p>
         </div>
       </section>
 
@@ -171,7 +171,7 @@
           <details><summary>¿Necesito experiencia previa?<span>＋</span></summary><p>No. Cada propuesta indica su nivel y las clases de nivel 1 acompañan tus primeros pasos.</p></details>
           <details><summary>¿Puedo elegir varias clases?<span>＋</span></summary><p>Sí. El carrito permite armar un combo libre. Habrá promociones por varias clases, aunque el descuento todavía está por definirse.</p></details>
           <details><summary>¿Cómo recibiré la compra?<span>＋</span></summary><p>En la versión final, después de confirmar el pago recibirás por correo el enlace de acceso. Su vigencia está pendiente de definición.</p></details>
-          <details><summary>¿La página ya procesa pagos?<span>＋</span></summary><p>PayPal está en modo sandbox para pruebas en USD: no son cobros reales ni habilitan entrega. Mercado Pago sigue pendiente hasta confirmar importes en ARS.</p></details>
+          <details><summary>¿La página ya procesa pagos?<span>＋</span></summary><p>PayPal está en modo sandbox para pruebas en USD: no son cobros reales ni habilitan entrega. Los precios ARS ya se calculan con la cotización vigente, pero Mercado Pago continúa deshabilitado mientras se completa su integración sandbox.</p></details>
         </div>
       </section>
     </main>
@@ -195,7 +195,7 @@
       <div class="cart-items" id="cart-items"></div>
       <p class="cart-empty" id="cart-empty">Tu carrito está vacío.</p>
       <div class="cart-summary" id="cart-summary" hidden>
-        <p><span>Subtotal en precios de lista</span><strong id="cart-total">USD 0</strong></p>
+        <p><span>Subtotal en precios de lista</span><strong><span id="cart-total">USD 0</span><small id="cart-total-ars" hidden></small></strong></p>
         <p class="cart-promotion" id="cart-promotion">Agregá dos o más clases para armar tu combo.</p>
       </div>
       <form class="checkout-form" id="checkout-form">
@@ -215,7 +215,7 @@
           </button>
           <button class="button payment-secondary cart-submit" type="submit" data-payment-provider="mercadopago">
             <span>Continuar con Mercado Pago</span>
-            <small>Importe en ARS a confirmar</small>
+            <small id="mercadopago-price">Precio ARS no disponible</small>
           </button>
         </div>
         <p class="form-status" id="form-status" aria-live="polite"></p>
@@ -267,6 +267,6 @@
       </div>
     </dialog>
 
-    <script src="js/app.js?v=20260922-2" defer></script>
+    <script src="js/app.js?v=20260922-3" defer></script>
   </body>
 </html>

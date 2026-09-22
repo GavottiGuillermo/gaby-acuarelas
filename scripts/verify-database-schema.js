@@ -8,6 +8,8 @@ const connectionString = process.env.DATABASE_MIGRATION_URL || process.env.DATAB
 const expectedTables = [
   'customers',
   'deliveries',
+  'exchange_rates',
+  'exchange_rate_update_status',
   'order_items',
   'orders',
   'payment_attempts',
@@ -48,7 +50,7 @@ async function main() {
     `);
     assertEqualLists(
       migrationResult.rows.map((row) => row.version),
-      ['001_order_core'],
+      ['001_order_core', '002_exchange_rates', '003_exchange_rate_update_status'],
       'migraciones'
     );
 
@@ -85,7 +87,7 @@ async function main() {
 
     console.log('Esquema PostgreSQL verificado:');
     console.log(`- Tablas esperadas: ${actualTables.length}`);
-    console.log('- Migración registrada: 001_order_core');
+    console.log('- Migraciones registradas: 001_order_core, 002_exchange_rates, 003_exchange_rate_update_status');
     console.log('- Tablas de dominio vacías: sí');
     console.log('- Restricciones únicas críticas: presentes');
   } catch (error) {

@@ -50,6 +50,29 @@ test('obliga a revalidar los recursos críticos de la interfaz', async () => {
   });
 });
 
+test('publica precios ARS calculados por el servidor sin caché', async () => {
+  const pricingService = {
+    async getPublicPricing() {
+      return {
+        baseCurrency: 'USD',
+        quoteCurrency: 'ARS',
+        rate: 1535,
+        rounding: 'up-to-next-100',
+        products: [{ productId: 'ebook-10-acuarelas-botanicas', amount: 7700 }]
+      };
+    }
+  };
+  const app = createApp({ catalog, pricingService, publicDir });
+
+  await withServer(app, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/pricing`);
+    const payload = await response.json();
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('cache-control'), 'no-store');
+    assert.equal(payload.pricing.products[0].amount, 7700);
+  });
+});
+
 test('crea una orden validada y devuelve 201 sin aceptar precios del navegador', async () => {
   const repository = {
     async create(request) {

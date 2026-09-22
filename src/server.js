@@ -10,6 +10,8 @@ const { PostgresOrderRepository } = require('./orders/postgres-repository');
 const { createPayPalClient } = require('./payments/paypal-client');
 const { PaymentService } = require('./payments/service');
 const { PostgresPaymentRepository } = require('./payments/postgres-repository');
+const { PricingService } = require('./pricing/service');
+const { PostgresPricingRepository } = require('./pricing/postgres-repository');
 
 const port = Number(process.env.PORT || 3000);
 const publicDir = path.join(__dirname, '..', 'public');
@@ -28,7 +30,13 @@ const paymentService = pool && paypalClient
       publicBaseUrl: process.env.PUBLIC_BASE_URL
     })
   : null;
-const app = createApp({ catalog, orderService, paymentService, publicDir });
+const pricingService = pool
+  ? new PricingService({
+      repository: new PostgresPricingRepository(pool),
+      catalog
+    })
+  : null;
+const app = createApp({ catalog, orderService, paymentService, pricingService, publicDir });
 
 const server = app.listen(port, '0.0.0.0', () => {
   console.log(`Gaby Acuarelas disponible en http://localhost:${port}`);

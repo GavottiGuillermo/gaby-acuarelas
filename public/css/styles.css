@@ -507,6 +507,16 @@ h1 em {
   font: 600 2.2rem var(--serif);
 }
 
+.price-ars {
+  color: var(--berry-deep);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.ebook-action .price-ars {
+  margin-top: -2px;
+}
+
 .fine-print {
   margin: 17px 0 0;
   color: var(--ink-soft);
@@ -727,6 +737,13 @@ h1 em {
 
 .course-price strong {
   font: 600 1.65rem var(--serif);
+}
+
+.course-price .price-ars {
+  margin-top: -3px;
+  color: var(--berry-deep);
+  font-size: 0.68rem;
+  font-weight: 600;
 }
 
 .card-action {
@@ -1133,7 +1150,19 @@ footer > small {
 }
 
 .cart-item-price {
+  display: grid;
+  justify-items: end;
+  line-height: 1.1;
+}
+
+.cart-item-price strong {
   font: 600 1.15rem var(--serif);
+}
+
+.cart-item-price small {
+  color: var(--berry-deep);
+  font-size: 0.58rem;
+  font-weight: 600;
 }
 
 .cart-item-actions {
@@ -1171,13 +1200,25 @@ footer > small {
   gap: 20px;
 }
 
-.cart-summary span {
+.cart-summary > p:first-child > span {
   color: var(--ink-soft);
   font-size: 0.7rem;
 }
 
 .cart-summary strong {
+  display: grid;
+  justify-items: end;
+  line-height: 1.1;
   font: 600 1.7rem var(--serif);
+}
+
+.cart-summary strong > span {
+  color: var(--ink);
+}
+
+.cart-summary strong > small {
+  color: var(--berry-deep);
+  font: 600 0.7rem var(--sans);
 }
 
 .cart-promotion {

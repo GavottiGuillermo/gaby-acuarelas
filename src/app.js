@@ -2,8 +2,16 @@ const path = require('path');
 const express = require('express');
 const { OrderError } = require('./orders/errors');
 const { PaymentError } = require('./payments/errors');
+const { PricingError } = require('./pricing/errors');
 
-function createApp({ catalog, orderService = null, paymentService = null, publicDir, logger = console }) {
+function createApp({
+  catalog,
+  orderService = null,
+  paymentService = null,
+  pricingService = null,
+  publicDir,
+  logger = console
+}) {
   const app = express();
 
   app.disable('x-powered-by');
@@ -72,7 +80,8 @@ function createApp({ catalog, orderService = null, paymentService = null, public
       status: 'ok',
       service: 'gaby-acuarelas',
       orderPersistence: orderService ? 'configured' : 'not-configured',
-      paypalSandbox: paymentService ? 'configured' : 'not-configured'
+      paypalSandbox: paymentService ? 'configured' : 'not-configured',
+      arsPricing: pricingService ? 'configured' : 'not-configured'
     });
   });
 
@@ -87,6 +96,23 @@ function createApp({ catalog, orderService = null, paymentService = null, public
         mercadopago: 'disabled'
       }
     });
+  });
+
+  app.get('/api/pricing', async (_req, res, next) => {
+    if (!pricingService) {
+      return res.status(503).json({
+        error: 'Los precios en ARS todavía no están disponibles.',
+        code: 'ars_prices_unavailable'
+      });
+    }
+
+    try {
+      const pricing = await pricingService.getPublicPricing();
+      res.setHeader('Cache-Control', 'no-store');
+      return res.json({ pricing });
+    } catch (error) {
+      return next(error);
+    }
   });
 
   app.post('/api/orders', async (req, res, next) => {
@@ -174,7 +200,7 @@ function createApp({ catalog, orderService = null, paymentService = null, public
   });
 
   app.use((error, _req, res, _next) => {
-    if (error instanceof OrderError || error instanceof PaymentError) {
+    if (error instanceof OrderError || error instanceof PaymentError || error instanceof PricingError) {
       return res.status(error.status).json({ error: error.message, code: error.code });
     }
 

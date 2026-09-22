@@ -91,11 +91,11 @@
 ## D-013 - Tienda estática en USD con carrito
 
 - Estado: aceptada de manera provisional.
-- La demo muestra precios únicamente en USD.
+- USD se conserva como precio base del catálogo. En el servicio Express se muestra además el equivalente ARS calculado en servidor; la versión puramente estática mantiene USD cuando no puede consultar PostgreSQL.
 - El carrito admite uno o varios productos y permite armar un combo libre.
 - Se comunica que existen promociones por compra múltiple, sin inventar ni aplicar un descuento.
 - El formulario visual solicita nombre, apellido y correo.
-- El carrito mantiene visibles las opciones futuras de PayPal y Mercado Pago. Mercado Pago informa que el importe ARS está pendiente, sin inventar una conversión.
+- El carrito muestra subtotales USD y ARS cuando la cotización está disponible. PayPal continúa en Sandbox USD y Mercado Pago informa el importe ARS sin habilitar todavía el pago.
 
 ## D-014 - Valores provisionales del catálogo
 
@@ -116,6 +116,19 @@
 - Esta autorización no habilita credenciales `Live`, cobros reales ni el uso de saldo o tarjetas reales.
 - Antes de producción se reemplazarán `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET` y `PAYPAL_WEBHOOK_ID` por credenciales de una app de Gaby o de una cuenta comercial expresamente autorizada por ella.
 - El cambio de titular no requiere modificar precios ni código: las credenciales viven exclusivamente en variables privadas del entorno y los datos sandbox no se migran a producción.
+
+## D-017 - Cotización comercial USD/ARS administrada
+
+- Estado: estructura, fuente y fórmula comercial aceptadas por Guillermo el 2026-09-22; integración de Mercado Pago pendiente.
+- La cotización se administra en `gaby_acuarelas.exchange_rates` y conserva el historial de valores cargados.
+- Sólo puede existir una cotización activa por par de monedas.
+- El rol web puede consultar la tabla, pero no modificarla; las actualizaciones requieren la credencial administrativa.
+- El comando administrativo `npm run rate:update` obtiene la cotización oficial de venta desde DolarApi, cuya documentación publica licencia MIT y un aviso legal de servicio informativo. La fuente y fecha quedan registradas con cada valor.
+- DolarApi es un servicio de terceros y no se presenta como fuente oficial del BCRA. Si falla o devuelve un dato inválido o con más de siete días, la actualización se rechaza sin reemplazar la última cotización válida.
+- Una cotización almacenada no habilita por sí sola el checkout ARS: la integración debe congelar en cada orden el importe calculado y probar conciliación, antigüedad e indisponibilidad antes de crear pagos.
+- Guillermo aprobó el 2026-09-22 usar la cotización de venta sin margen adicional y redondear cada precio hacia arriba al siguiente múltiplo de $100.
+- La web continúa usando la última cotización válida aunque esté desactualizada. Sólo oculta ARS si no existe una cotización utilizable o si su valor o fecha futura son inválidos.
+- Tres actualizaciones fallidas consecutivas o más de diez días desde la cotización efectiva activan una alerta administrativa persistente. El envío por correo queda preparado como requisito de etapa 5, cuando exista un servidor de correo habilitado.
 
 ## Asuntos abiertos
 

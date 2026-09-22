@@ -109,6 +109,6 @@ Esto confirma el canal y la clase de materiales, pero no define duración del ac
 - Validar la clasificación triple y el precio de `Hortensias realista`.
 - Confirmar las correcciones de `Peced fantasticos` y `Gingko biloba`.
 - Definir la fórmula de promociones; la demo permite armar combos libres sin calcular descuento.
-- La demo muestra precios de catálogo solamente en USD y presenta Mercado Pago como opción futura; el importe ARS queda pendiente y no se calcula por conversión automática.
+- La web conserva USD como precio de catálogo y muestra su equivalente ARS calculado en servidor con la última cotización válida de venta de DolarApi, redondeado hacia arriba a múltiplos de $100. Si la actualización falla conserva el valor almacenado; tres fallos consecutivos o más de diez días activan una alerta cuya notificación por correo se conectará en la etapa 5. Mercado Pago continúa deshabilitado hasta completar y probar su integración sandbox.
 - Aportar por curso descripción, contenido exacto, imagen original y enlace o identificador de entrega.
 - Confirmar permiso de publicación y atribución de cada trabajo de alumnas/os de las páginas 13 y 14.

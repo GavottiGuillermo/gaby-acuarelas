@@ -35,6 +35,57 @@ npm run db:verify
 npm run db:create-app-role
 npm run db:verify-app
 npm run db:rollback
+npm run rate:update
 ```
 
 `db:check-readiness` sólo consulta versión, conexiones, tamaño, TLS, permisos y existencia del esquema. El runner de migraciones usa una transacción y un bloqueo asesor para evitar dos ejecuciones simultáneas. El rollback revierte solamente la última migración registrada.
+
+## Cotización comercial USD/ARS
+
+La tabla `gaby_acuarelas.exchange_rates` conserva el historial de cotizaciones cargadas manualmente. Sólo puede existir una fila activa por par de monedas. El rol limitado de la aplicación tiene permiso de lectura, pero no puede modificar cotizaciones.
+
+`npm run rate:update` consulta desde el servidor la cotización oficial de venta publicada por DolarApi, valida el valor y su fecha, y reemplaza la fila activa dentro de una transacción. Requiere `DATABASE_MIGRATION_URL`, no acepta valores desde el navegador y conserva la cotización anterior como historial. Si el servicio falla o el dato recibido tiene más de siete días, no reemplaza la última cotización válida.
+
+La tabla `gaby_acuarelas.exchange_rate_update_status` registra solamente el número de fallos consecutivos, fechas de intento, éxito y fallo, y un código de error seguro. No guarda respuestas externas ni mensajes potencialmente sensibles. Tres fallos consecutivos o una cotización almacenada con más de diez días activan la condición operativa de alerta. El correo administrativo se conectará cuando la etapa 5 habilite el servidor de correo; mientras tanto, el comando escribe una alerta explícita en su salida.
+
+La web sigue utilizando la última cotización válida aunque supere diez días. Sólo rechaza una fila inexistente, un valor inválido o una fecha futura, porque esos casos no ofrecen una base segura para calcular importes.
+
+La cotización USD/ARS activa se consulta con:
+
+```sql
+SELECT id, rate, source, effective_at, created_at
+FROM gaby_acuarelas.exchange_rates
+WHERE base_currency = 'USD'
+  AND quote_currency = 'ARS'
+  AND active;
+```
+
+Para reemplazarla, ejecutar la siguiente transacción con la credencial administrativa. Sustituir el valor, la fuente y la fecha por los datos comerciales aprobados; no cargar una cotización obtenida de una fuente cuyo uso comercial no esté autorizado.
+
+```sql
+BEGIN;
+
+UPDATE gaby_acuarelas.exchange_rates
+SET active = false
+WHERE base_currency = 'USD'
+  AND quote_currency = 'ARS'
+  AND active;
+
+INSERT INTO gaby_acuarelas.exchange_rates (
+  base_currency,
+  quote_currency,
+  rate,
+  source,
+  effective_at
+) VALUES (
+  'USD',
+  'ARS',
+  1500.000000,              -- Reemplazar por el valor aprobado.
+  'carga manual',           -- Identificar el origen autorizado.
+  '2026-09-22T12:00:00-03'  -- Reemplazar por la fecha efectiva.
+);
+
+COMMIT;
+```
+
+Esta tabla todavía no calcula precios ni modifica órdenes. Antes de usarla para Mercado Pago se deben aprobar y probar la fuente, el margen, el redondeo, la antigüedad máxima y el comportamiento cuando no haya una cotización válida.

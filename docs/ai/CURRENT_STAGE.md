@@ -39,7 +39,7 @@ Integrar Mercado Pago y PayPal exclusivamente en ambientes sandbox, manteniendo 
 
 ## Prerrequisitos pendientes
 
-- Confirmar la lista de precios ARS antes de crear pagos Mercado Pago. No se permite una conversión automática ni un importe provisional para pagos.
+- La regla ARS quedó confirmada: cotización oficial de venta obtenida de DolarApi y redondeo hacia arriba a múltiplos de $100. Resta integrar estos importes en órdenes ARS y Mercado Pago Sandbox antes de crear pagos.
 - Crear u obtener credenciales de prueba de Mercado Pago y guardarlas sólo en `.env` local o variables privadas del entorno. Las tres credenciales PayPal Sandbox están configuradas en variables privadas y fueron aceptadas por OAuth.
 
 ## Acciones no permitidas todavía
@@ -100,6 +100,20 @@ Integrar Mercado Pago y PayPal exclusivamente en ambientes sandbox, manteniendo 
 - `npm run check` aprobó el monitoreo extendido con 23 pruebas automatizadas, compuerta de etapa y catálogo el 2026-09-22; sólo se omitió la prueba PostgreSQL opcional sin `TEST_DATABASE_URL`.
 - Se comprobó en el dominio desplegado que HTML y JavaScript se servían con caché pública de una hora. Los recursos críticos ahora exigen revalidación, incluyen una versión de despliegue y el cierre del diálogo activa un monitor independiente que reabre el éxito cuando la orden cambia a `approved`.
 - `npm run check` aprobó este ajuste con 25 pruebas automatizadas (24 aprobadas y la prueba PostgreSQL opcional omitida por no estar configurada `TEST_DATABASE_URL`), compuerta de etapa y catálogo el 2026-09-22.
+- La migración `002_exchange_rates` agregó un historial administrado de cotizaciones con una sola fila activa por par de monedas; no cargó ningún valor provisional ni conecta fuentes externas sin autorización comercial.
+- La tabla `gaby_acuarelas.exchange_rates` quedó aplicada inicialmente sin valores provisionales. El rol limitado puede leerla y no puede actualizarla; la consulta administrativa de reemplazo está documentada en `db/README.md`.
+- `npm run check` aprobó la migración con 26 pruebas automatizadas (25 aprobadas y la prueba PostgreSQL opcional omitida por no estar configurada `TEST_DATABASE_URL`), compuerta de etapa y catálogo el 2026-09-22.
+- `npm run rate:update` consultó DolarApi desde el servidor y guardó como cotización activa de venta USD/ARS el valor `1535.000000`, con fecha de origen `2026-09-22T16:00:00.000Z` y fuente `dolarapi:oficial:venta`.
+- Una segunda ejecución de `npm run rate:update` reconoció la misma cotización y no creó otro registro. El comando rechaza respuestas inválidas, fechas futuras y datos con más de siete días, y conserva la base sin cambios ante un fallo.
+- `npm run check` aprobó la actualización con 29 pruebas automatizadas (28 aprobadas y la prueba PostgreSQL opcional omitida por no estar configurada `TEST_DATABASE_URL`), compuerta de etapa y catálogo el 2026-09-22.
+- Guillermo aprobó mostrar los precios ARS redondeados hacia arriba a múltiplos de $100. `GET /api/pricing` lee únicamente la cotización activa de PostgreSQL, rechaza valores ausentes, inválidos o con fecha futura y calcula en servidor los 41 importes.
+- La web muestra ARS en el ebook, las tarjetas, cada ítem y el subtotal del carrito. Si una actualización externa falla, continúa usando la última cotización válida aunque tenga más de diez días; si el backend o una cotización utilizable no existen, conserva USD y oculta ARS. Mercado Pago continúa deshabilitado y no se modificó el contrato USD de las órdenes PayPal.
+- Con la cotización de venta `1535.000000`, la API devolvió los valores esperados: USD 5 → ARS 7.700, USD 12 → ARS 18.500, USD 15 → ARS 23.100, USD 18 → ARS 27.700 y USD 25 → ARS 38.400.
+- `npm run check` aprobó el desarrollo con 33 pruebas automatizadas (32 aprobadas y la prueba PostgreSQL opcional omitida por no estar configurada `TEST_DATABASE_URL`), compuerta de etapa y catálogo el 2026-09-22. La verificación HTTP local confirmó `/api/pricing` y los tres puntos de presentación ARS; la revisión visual en navegador quedó pendiente porque no había un navegador conectado en la sesión.
+- La migración `003_exchange_rate_update_status` quedó aplicada y registra fallos consecutivos, último intento, último éxito, último fallo y un código seguro, sin guardar respuestas externas. El rol web tiene sólo lectura sobre este estado.
+- La condición operativa de alerta se activa con 3 fallos consecutivos o más de 10 días desde la cotización efectiva. El comando deja la alerta en logs; Guillermo autorizó completar el correo administrativo cuando la etapa 5 tenga un servidor de correo activo.
+- `npm run rate:update` actualizó la cotización a `1535.000000` con fecha de origen `2026-09-22T17:00:00.000Z` y dejó el estado en 0 fallos consecutivos, con intento y éxito registrados y sin código de error.
+- `npm run check` aprobó la estructura de fallback y alerta con 37 pruebas automatizadas (36 aprobadas y la prueba PostgreSQL opcional omitida por no estar configurada `TEST_DATABASE_URL`), compuerta de etapa y catálogo el 2026-09-22.
 
 ## Regla para cerrar esta etapa
 

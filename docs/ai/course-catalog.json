@@ -27,7 +27,16 @@
         "price": 25
       }
     ],
-    "arsPricesAvailable": false,
+    "arsPricesAvailable": true,
+    "arsConversion": {
+      "source": "dolarapi:oficial:venta",
+      "rounding": "up-to-next-100",
+      "calculatedBy": "server",
+      "storedRateFallback": true,
+      "sourceMaximumAgeDays": 7,
+      "administrativeAlertAfterDays": 10,
+      "administrativeAlertAfterFailures": 3
+    },
     "multiClassPromotionDefined": false,
     "promotionMessagingAllowed": true
   },
