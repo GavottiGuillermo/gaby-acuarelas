@@ -29,6 +29,8 @@ const PAYPAL_ORDER_FAST_POLL_ATTEMPTS = 15;
 const PAYPAL_ORDER_FAST_POLL_INTERVAL_MS = 1000;
 const PAYPAL_ORDER_BACKGROUND_POLL_ATTEMPTS = 57;
 const PAYPAL_ORDER_BACKGROUND_POLL_INTERVAL_MS = 5000;
+const PAYPAL_CLOSED_DIALOG_POLL_INTERVAL_MS = 3000;
+const PAYPAL_CLOSED_DIALOG_POLL_ATTEMPTS = 200;
 const PAYPAL_PENDING_ORDER_KEY = 'gaby-paypal-pending-order';
 const PAYPAL_CANCELLED_MESSAGE = 'Cancelaste el pago sandbox en PayPal. Podés volver a intentarlo desde el carrito.';
 const PAYPAL_ORDER_STATUSES = new Map([
@@ -73,8 +75,10 @@ const state = {
       mercadopago: 'disabled'
     }
   },
-  submitting: false
+  submitting: false,
+  finalizedPayPalOrderId: null
 };
+let closedDialogPayPalMonitor = null;
 
 const usd = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -403,12 +407,14 @@ function showPurchaseProcessing(mode = 'waiting', order = null, openDialog = tru
 }
 
 function showCartPaymentStatus(message, tone) {
+  stopClosedDialogPayPalMonitor();
   if (purchaseSuccessDialog.open) purchaseSuccessDialog.close();
   showFormStatus(message, tone);
   openCart();
 }
 
 function showPurchaseSuccess(order) {
+  stopClosedDialogPayPalMonitor();
   const items = Array.isArray(order.items) ? order.items : [];
   purchaseSuccessItems.replaceChildren(...items.map((item) => {
     const row = createElement('li');
@@ -433,6 +439,75 @@ function showPurchaseSuccess(order) {
   if (!purchaseSuccessDialog.open) purchaseSuccessDialog.showModal();
 }
 
+function stopClosedDialogPayPalMonitor() {
+  if (closedDialogPayPalMonitor?.timer) {
+    window.clearInterval(closedDialogPayPalMonitor.timer);
+  }
+  closedDialogPayPalMonitor = null;
+}
+
+function handleTerminalPayPalOrder(order) {
+  if (!order || order.status === 'pending') return false;
+  if (state.finalizedPayPalOrderId === order.id) return true;
+
+  if (order.status === 'approved') {
+    state.finalizedPayPalOrderId = order.id;
+    forgetPendingPayPalOrder();
+    showPurchaseSuccess(order);
+    return true;
+  }
+
+  const status = PAYPAL_ORDER_STATUSES.get(order.status);
+  if (status) {
+    state.finalizedPayPalOrderId = order.id;
+    forgetPendingPayPalOrder();
+    showCartPaymentStatus(status.message, status.tone);
+    return true;
+  }
+
+  return false;
+}
+
+async function checkClosedDialogPayPalOrder() {
+  const monitor = closedDialogPayPalMonitor;
+  if (!monitor || monitor.inFlight) return;
+  if (monitor.attempts >= PAYPAL_CLOSED_DIALOG_POLL_ATTEMPTS) {
+    stopClosedDialogPayPalMonitor();
+    return;
+  }
+
+  monitor.inFlight = true;
+  monitor.attempts += 1;
+  try {
+    const payload = await requestJson(`/api/orders/${encodeURIComponent(monitor.orderId)}`, {
+      cache: 'no-store'
+    });
+    if (!payload.order || typeof payload.order.status !== 'string') return;
+    if (payload.order.status === 'pending') updateProcessingSummary(payload.order);
+    handleTerminalPayPalOrder(payload.order);
+  } catch {
+    // El monitor principal y una futura recarga conservan la posibilidad de reintento.
+  } finally {
+    monitor.inFlight = false;
+  }
+}
+
+function startClosedDialogPayPalMonitor(orderId) {
+  if (!orderId || closedDialogPayPalMonitor?.orderId === orderId) return;
+  stopClosedDialogPayPalMonitor();
+  closedDialogPayPalMonitor = {
+    orderId,
+    attempts: 0,
+    inFlight: false,
+    timer: null
+  };
+  closedDialogPayPalMonitor.timer = window.setInterval(
+    () => void checkClosedDialogPayPalOrder(),
+    PAYPAL_CLOSED_DIALOG_POLL_INTERVAL_MS
+  );
+  void checkClosedDialogPayPalOrder();
+}
+
 function wait(milliseconds) {
   return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 }
@@ -445,7 +520,9 @@ async function waitForPayPalOrder(orderId, { continueInBackground = true } = {})
 
   for (let attempt = 0; attempt < totalAttempts; attempt += 1) {
     try {
-      const payload = await requestJson(`/api/orders/${encodeURIComponent(orderId)}`);
+      const payload = await requestJson(`/api/orders/${encodeURIComponent(orderId)}`, {
+        cache: 'no-store'
+      });
       if (!payload.order || typeof payload.order.status !== 'string') {
         throw new Error('El servidor devolvió un estado de orden no válido.');
       }
@@ -481,18 +558,7 @@ async function showPayPalOrderResult(orderId, captureError = null) {
     const continueInBackground = !captureError
       || captureError.code === 'payment_attempt_already_processed';
     const order = await waitForPayPalOrder(orderId, { continueInBackground });
-    if (order?.status === 'approved') {
-      forgetPendingPayPalOrder();
-      showPurchaseSuccess(order);
-      return;
-    }
-
-    const status = PAYPAL_ORDER_STATUSES.get(order?.status);
-    if (status) {
-      forgetPendingPayPalOrder();
-      showCartPaymentStatus(status.message, status.tone);
-      return;
-    }
+    if (handleTerminalPayPalOrder(order)) return;
 
     if (captureError && captureError.code !== 'payment_attempt_already_processed') {
       showPurchaseProcessing('error', order, false);
@@ -679,6 +745,11 @@ purchaseSuccessDialog.addEventListener('click', (event) => {
   const outside = event.clientX < bounds.left || event.clientX > bounds.right
     || event.clientY < bounds.top || event.clientY > bounds.bottom;
   if (outside) purchaseSuccessDialog.close();
+});
+purchaseSuccessDialog.addEventListener('close', () => {
+  if (purchaseSuccessDialog.dataset.state === 'success') return;
+  const orderId = pendingPayPalOrder();
+  if (orderId) startClosedDialogPayPalMonitor(orderId);
 });
 
 checkoutForm.addEventListener('submit', async (event) => {

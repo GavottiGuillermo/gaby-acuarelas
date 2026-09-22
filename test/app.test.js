@@ -38,6 +38,18 @@ test('mantiene la API de órdenes cerrada cuando PostgreSQL no está configurado
   });
 });
 
+test('obliga a revalidar los recursos críticos de la interfaz', async () => {
+  const app = createApp({ catalog, publicDir });
+
+  await withServer(app, async (baseUrl) => {
+    for (const resource of ['/', '/js/app.js', '/css/styles.css', '/catalog.json']) {
+      const response = await fetch(`${baseUrl}${resource}`);
+      assert.equal(response.status, 200);
+      assert.equal(response.headers.get('cache-control'), 'no-cache');
+    }
+  });
+});
+
 test('crea una orden validada y devuelve 201 sin aceptar precios del navegador', async () => {
   const repository = {
     async create(request) {

@@ -58,7 +58,13 @@ function createApp({ catalog, orderService = null, paymentService = null, public
 
   app.use(express.static(publicDir, {
     etag: true,
-    maxAge: process.env.NODE_ENV === 'production' ? '1h' : 0
+    maxAge: process.env.NODE_ENV === 'production' ? '1h' : 0,
+    setHeaders(response, filePath) {
+      const extension = path.extname(filePath).toLowerCase();
+      if (['.html', '.js', '.css', '.json'].includes(extension)) {
+        response.setHeader('Cache-Control', 'no-cache');
+      }
+    }
   }));
 
   app.get('/health', (_req, res) => {

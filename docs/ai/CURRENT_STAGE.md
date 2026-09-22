@@ -98,6 +98,8 @@ Integrar Mercado Pago y PayPal exclusivamente en ambientes sandbox, manteniendo 
 - `npm run check` aprobó este ajuste con 23 pruebas automatizadas, compuerta de etapa y catálogo el 2026-09-21; sólo se omitió la prueba PostgreSQL opcional sin `TEST_DATABASE_URL`.
 - El monitoreo del retorno PayPal continúa en segundo plano durante aproximadamente cinco minutos después de la ventana rápida inicial. Cerrar el diálogo de procesamiento no detiene las consultas y una aprobación posterior vuelve a abrir automáticamente la confirmación de compra.
 - `npm run check` aprobó el monitoreo extendido con 23 pruebas automatizadas, compuerta de etapa y catálogo el 2026-09-22; sólo se omitió la prueba PostgreSQL opcional sin `TEST_DATABASE_URL`.
+- Se comprobó en el dominio desplegado que HTML y JavaScript se servían con caché pública de una hora. Los recursos críticos ahora exigen revalidación, incluyen una versión de despliegue y el cierre del diálogo activa un monitor independiente que reabre el éxito cuando la orden cambia a `approved`.
+- `npm run check` aprobó este ajuste con 25 pruebas automatizadas (24 aprobadas y la prueba PostgreSQL opcional omitida por no estar configurada `TEST_DATABASE_URL`), compuerta de etapa y catálogo el 2026-09-22.
 
 ## Regla para cerrar esta etapa
 
