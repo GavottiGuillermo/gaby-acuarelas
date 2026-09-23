@@ -153,15 +153,16 @@ function assertReconciledMercadoPagoPreference(preference, attempt) {
   }
 }
 
-function assertReconciledMercadoPagoPayment(payment, paymentId, attempt) {
+function assertReconciledMercadoPagoPayment(payment, paymentId, attempt, eventLiveMode) {
   const identityMatches = String(payment?.id) === paymentId
-    && payment?.live_mode === false
     && payment?.external_reference === attempt.order.id
     && payment?.metadata?.order_id === attempt.order.id
     && payment?.metadata?.payment_attempt_id === attempt.id;
+  const environmentMatches = typeof payment?.live_mode === 'boolean'
+    && payment.live_mode === eventLiveMode;
   const amountMatches = payment?.currency_id === attempt.expectedCurrency
     && numberToCents(payment?.transaction_amount) === attempt.expectedAmountCents;
-  if (!identityMatches || !amountMatches) {
+  if (!identityMatches || !environmentMatches || !amountMatches) {
     throw new PaymentError('El pago de Mercado Pago no coincide con referencia, importe o moneda.', {
       code: 'payment_reconciliation_failed',
       status: 409
@@ -375,15 +376,15 @@ class PaymentService {
     }
 
     const eventId = String(event?.id || '');
-    const paymentId = String(event?.data?.id || '');
+    const resourceId = String(event?.data?.id || '');
 
-    if (event.type !== 'payment') {
+    if (typeof event.type !== 'string' || !event.type) {
       throw new PaymentError('El webhook de Mercado Pago no es válido.', {
         code: 'invalid_webhook_type'
       });
     }
-    if (event.live_mode !== false) {
-      throw new PaymentError('El webhook de Mercado Pago no corresponde al entorno Sandbox.', {
+    if (typeof event.live_mode !== 'boolean') {
+      throw new PaymentError('El webhook de Mercado Pago no informa un entorno válido.', {
         code: 'invalid_webhook_live_mode'
       });
     }
@@ -392,12 +393,8 @@ class PaymentService {
         code: 'invalid_webhook_event_id'
       });
     }
-    if (!MERCADOPAGO_PAYMENT_ID_PATTERN.test(paymentId)) {
-      throw new PaymentError('El webhook de Mercado Pago no contiene un pago válido.', {
-        code: 'invalid_webhook_payment_id'
-      });
-    }
-    if (typeof dataId !== 'string' || dataId.toLowerCase() !== paymentId.toLowerCase()) {
+    if (!resourceId || resourceId.length > 256
+        || typeof dataId !== 'string' || dataId.toLowerCase() !== resourceId.toLowerCase()) {
       throw new PaymentError('La referencia URL del webhook de Mercado Pago no coincide.', {
         code: 'invalid_webhook_data_id'
       });
@@ -411,6 +408,24 @@ class PaymentService {
     const payloadSha256 = crypto.createHash('sha256').update(rawBody).digest('hex');
     if (await this.repository.hasEvent('mercadopago', eventId)) {
       return { duplicate: true, processed: false };
+    }
+
+    if (event.type !== 'payment') {
+      return this.repository.applyWebhookEvent({
+        provider: 'mercadopago',
+        providerEventId: eventId,
+        eventType: `${event.type}:${event.action || 'unknown'}`,
+        payloadSha256,
+        attemptId: null,
+        processingStatus: 'ignored'
+      });
+    }
+
+    const paymentId = resourceId;
+    if (!MERCADOPAGO_PAYMENT_ID_PATTERN.test(paymentId)) {
+      throw new PaymentError('El webhook de Mercado Pago no contiene un pago válido.', {
+        code: 'invalid_webhook_payment_id'
+      });
     }
 
     const payment = await this.mercadoPagoClient.getPayment(paymentId);
@@ -440,7 +455,7 @@ class PaymentService {
 
     const preference = await this.mercadoPagoClient.getPreference(attempt.providerReference);
     assertReconciledMercadoPagoPreference(preference, attempt);
-    assertReconciledMercadoPagoPayment(payment, paymentId, attempt);
+    assertReconciledMercadoPagoPayment(payment, paymentId, attempt, event.live_mode);
     const outcome = MERCADOPAGO_STATUS_OUTCOMES[payment.status];
     return this.repository.applyWebhookEvent({
       provider: 'mercadopago',

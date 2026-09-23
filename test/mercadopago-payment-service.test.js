@@ -193,8 +193,8 @@ test('traduce estados y no aprueba con firma o importe inválidos', async () => 
 
 test('distingue fallos estructurales del webhook sin registrar el cuerpo', async () => {
   const cases = [
-    [{ ...event('30001'), type: 'merchant_order' }, paymentId, 'invalid_webhook_type'],
-    [{ ...event('30002'), live_mode: true }, paymentId, 'invalid_webhook_live_mode'],
+    [{ ...event('30001'), type: '' }, paymentId, 'invalid_webhook_type'],
+    [{ ...event('30002'), live_mode: 'false' }, paymentId, 'invalid_webhook_live_mode'],
     [{ ...event('30003'), id: '' }, paymentId, 'invalid_webhook_event_id'],
     [{ ...event('30004'), data: { id: 'not-a-payment' } }, 'not-a-payment', 'invalid_webhook_payment_id'],
     [event('30005'), '111111111', 'invalid_webhook_data_id']
@@ -210,4 +210,45 @@ test('distingue fallos estructurales del webhook sin registrar el cuerpo', async
     }), (error) => error.code === code);
     assert.equal(current.applied.length, 0);
   }
+});
+
+test('ignora de forma autenticada otros tópicos y acepta el modo informado si coincide con el pago', async () => {
+  const ignored = fixture();
+  const merchantOrder = {
+    ...event('40001'),
+    type: 'merchant_order',
+    action: 'merchant_order.updated',
+    live_mode: true,
+    data: { id: '123456789' }
+  };
+  const ignoredResult = await ignored.service.processMercadoPagoWebhook({
+    headers: {},
+    event: merchantOrder,
+    rawBody: Buffer.from(JSON.stringify(merchantOrder)),
+    dataId: '123456789'
+  });
+  assert.equal(ignoredResult.processingStatus, 'ignored');
+  assert.equal(ignored.applied[0].attemptId, null);
+
+  const liveFlaggedTest = fixture();
+  liveFlaggedTest.mercadoPagoClient.getPayment = async () => payment('approved', { live_mode: true });
+  const liveEvent = { ...event('40002'), live_mode: true };
+  const processed = await liveFlaggedTest.service.processMercadoPagoWebhook({
+    headers: {},
+    event: liveEvent,
+    rawBody: Buffer.from(JSON.stringify(liveEvent)),
+    dataId: paymentId
+  });
+  assert.equal(processed.processed, true);
+  assert.equal(liveFlaggedTest.applied[0].orderStatus, 'approved');
+
+  const inconsistentMode = fixture();
+  const inconsistentEvent = { ...event('40003'), live_mode: true };
+  await assert.rejects(() => inconsistentMode.service.processMercadoPagoWebhook({
+    headers: {},
+    event: inconsistentEvent,
+    rawBody: Buffer.from(JSON.stringify(inconsistentEvent)),
+    dataId: paymentId
+  }), (error) => error.code === 'payment_reconciliation_failed');
+  assert.equal(inconsistentMode.applied.length, 0);
 });
