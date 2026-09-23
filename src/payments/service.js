@@ -368,14 +368,38 @@ class PaymentService {
   }
 
   async processMercadoPagoWebhook({ headers, event, rawBody, dataId }) {
+    if (!event || typeof event !== 'object' || Array.isArray(event)) {
+      throw new PaymentError('El webhook de Mercado Pago no es válido.', {
+        code: 'invalid_webhook_envelope'
+      });
+    }
+
     const eventId = String(event?.id || '');
     const paymentId = String(event?.data?.id || '');
-    if (!event || typeof event !== 'object' || Array.isArray(event)
-        || event.type !== 'payment' || event.live_mode !== false || !eventId
-        || !MERCADOPAGO_PAYMENT_ID_PATTERN.test(paymentId)
-        || typeof dataId !== 'string' || dataId.toLowerCase() !== paymentId.toLowerCase()) {
+
+    if (event.type !== 'payment') {
       throw new PaymentError('El webhook de Mercado Pago no es válido.', {
-        code: 'invalid_webhook'
+        code: 'invalid_webhook_type'
+      });
+    }
+    if (event.live_mode !== false) {
+      throw new PaymentError('El webhook de Mercado Pago no corresponde al entorno Sandbox.', {
+        code: 'invalid_webhook_live_mode'
+      });
+    }
+    if (!eventId) {
+      throw new PaymentError('El webhook de Mercado Pago no es válido.', {
+        code: 'invalid_webhook_event_id'
+      });
+    }
+    if (!MERCADOPAGO_PAYMENT_ID_PATTERN.test(paymentId)) {
+      throw new PaymentError('El webhook de Mercado Pago no contiene un pago válido.', {
+        code: 'invalid_webhook_payment_id'
+      });
+    }
+    if (typeof dataId !== 'string' || dataId.toLowerCase() !== paymentId.toLowerCase()) {
+      throw new PaymentError('La referencia URL del webhook de Mercado Pago no coincide.', {
+        code: 'invalid_webhook_data_id'
       });
     }
     if (!this.mercadoPagoClient.verifyWebhook({ headers, dataId })) {

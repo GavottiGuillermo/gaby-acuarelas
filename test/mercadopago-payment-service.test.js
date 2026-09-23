@@ -190,3 +190,24 @@ test('traduce estados y no aprueba con firma o importe inválidos', async () => 
   }), (error) => error.code === 'payment_reconciliation_failed');
   assert.equal(mismatch.applied.length, 0);
 });
+
+test('distingue fallos estructurales del webhook sin registrar el cuerpo', async () => {
+  const cases = [
+    [{ ...event('30001'), type: 'merchant_order' }, paymentId, 'invalid_webhook_type'],
+    [{ ...event('30002'), live_mode: true }, paymentId, 'invalid_webhook_live_mode'],
+    [{ ...event('30003'), id: '' }, paymentId, 'invalid_webhook_event_id'],
+    [{ ...event('30004'), data: { id: 'not-a-payment' } }, 'not-a-payment', 'invalid_webhook_payment_id'],
+    [event('30005'), '111111111', 'invalid_webhook_data_id']
+  ];
+
+  for (const [webhook, dataId, code] of cases) {
+    const current = fixture();
+    await assert.rejects(() => current.service.processMercadoPagoWebhook({
+      headers: {},
+      event: webhook,
+      rawBody: Buffer.from(JSON.stringify(webhook)),
+      dataId
+    }), (error) => error.code === code);
+    assert.equal(current.applied.length, 0);
+  }
+});
