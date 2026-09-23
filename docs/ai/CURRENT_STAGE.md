@@ -39,7 +39,7 @@ Integrar Mercado Pago y PayPal exclusivamente en ambientes sandbox, manteniendo 
 
 ## Prerrequisitos pendientes
 
-- La regla ARS quedó confirmada: cotización oficial de venta obtenida de DolarApi y redondeo hacia arriba a múltiplos de $100. Resta integrar estos importes en órdenes ARS y Mercado Pago Sandbox antes de crear pagos.
+- La regla ARS quedó integrada: cotización oficial de venta obtenida de DolarApi, redondeo hacia arriba a múltiplos de $100 y congelamiento de importes en órdenes Mercado Pago. Resta ejecutar el flujo real Sandbox.
 - Crear u obtener credenciales de prueba de Mercado Pago y guardarlas sólo en `.env` local o variables privadas del entorno. Las tres credenciales PayPal Sandbox están configuradas en variables privadas y fueron aceptadas por OAuth.
 
 ## Acciones no permitidas todavía
@@ -114,6 +114,11 @@ Integrar Mercado Pago y PayPal exclusivamente en ambientes sandbox, manteniendo 
 - La condición operativa de alerta se activa con 3 fallos consecutivos o más de 10 días desde la cotización efectiva. El comando deja la alerta en logs; Guillermo autorizó completar el correo administrativo cuando la etapa 5 tenga un servidor de correo activo.
 - `npm run rate:update` actualizó la cotización a `1535.000000` con fecha de origen `2026-09-22T17:00:00.000Z` y dejó el estado en 0 fallos consecutivos, con intento y éxito registrados y sin código de error.
 - `npm run check` aprobó la estructura de fallback y alerta con 37 pruebas automatizadas (36 aprobadas y la prueba PostgreSQL opcional omitida por no estar configurada `TEST_DATABASE_URL`), compuerta de etapa y catálogo el 2026-09-22.
+- El 2026-09-23 se implementó la estructura de Mercado Pago Checkout Pro Sandbox: órdenes ARS calculadas y congeladas en servidor, preferencias idempotentes, redirección exclusiva al `sandbox_init_point` y recuperación del estado interno al regresar.
+- `POST /api/webhooks/mercadopago` verifica la firma HMAC SHA-256 con `x-signature`, consulta el pago y la preferencia mediante el Access Token y concilia intento, orden, productos, moneda e importe antes de aplicar estados.
+- La configuración exige `MERCADOPAGO_ENV=sandbox`, `MERCADOPAGO_ACCESS_TOKEN` y `MERCADOPAGO_WEBHOOK_SECRET`; sin ambas credenciales el proveedor permanece deshabilitado y una configuración parcial se rechaza al iniciar el servicio.
+- Las pruebas automatizadas nuevas cubren preferencia ARS, rechazo de importes del navegador, firma alterada, conciliación, duplicados y estados aprobado, pendiente, rechazado y cancelado. Resta validar el flujo contra Mercado Pago porque las credenciales Sandbox todavía no están configuradas.
+- `npm run check` aprobó la integración local el 2026-09-23 con 46 pruebas automatizadas (45 aprobadas y la prueba PostgreSQL opcional omitida por no estar configurada `TEST_DATABASE_URL`), compuerta de etapa y catálogo. El escaneo del árbol de trabajo no encontró credenciales de Mercado Pago.
 
 ## Regla para cerrar esta etapa
 

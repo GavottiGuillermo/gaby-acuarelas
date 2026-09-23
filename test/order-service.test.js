@@ -30,6 +30,33 @@ test('construye el precio y la moneda desde el catálogo del servidor', () => {
   assert.match(request.requestFingerprint, /^[0-9a-f]{64}$/);
 });
 
+test('construye una orden Mercado Pago en ARS desde precios calculados por el servidor', async () => {
+  let captured;
+  const repository = {
+    async create(request) {
+      captured = request;
+      return { ...request, replayed: false };
+    }
+  };
+  const pricingService = {
+    async getPublicPricing() {
+      return {
+        quoteCurrency: 'ARS',
+        products: [{ productId: 'peonias-pimpollo', amount: 18500 }]
+      };
+    }
+  };
+  const service = new OrderService({ repository, catalog, pricingService });
+  await service.create({
+    body: validBody({ paymentProvider: 'mercadopago' }),
+    idempotencyKey: 'pedido-mercadopago-001'
+  });
+
+  assert.equal(captured.currency, 'ARS');
+  assert.equal(captured.totalAmountCents, 1850000);
+  assert.equal(captured.items[0].unitAmountCents, 1850000);
+});
+
 test('rechaza importes y monedas enviados por el cliente', () => {
   assert.throws(() => buildOrderRequest({
     body: validBody({ currency: 'ARS', totalAmountCents: 1 }),
@@ -118,4 +145,3 @@ test('el servicio delega la creación y no expone consultas con UUID inválido',
   assert.equal(result.id, captured.id);
   await assert.rejects(() => service.findById('no-es-un-uuid'), /no es válido/);
 });
-

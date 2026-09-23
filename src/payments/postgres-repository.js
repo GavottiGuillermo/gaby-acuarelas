@@ -1,5 +1,16 @@
 const crypto = require('crypto');
 const { PaymentError } = require('./errors');
+const { ORDER_TRANSITIONS } = require('../orders/states');
+
+function canApplyAttemptStatus(current, next) {
+  return current === next
+    || current === 'pending'
+    || (current === 'approved' && next === 'refunded');
+}
+
+function canApplyOrderStatus(current, next) {
+  return !next || current === next || Boolean(ORDER_TRANSITIONS[current]?.includes(next));
+}
 
 function mapOrder(orderRow, itemRows) {
   return {
@@ -57,6 +68,12 @@ class PostgresPaymentRepository {
       }
       if (provider === 'paypal' && orderRow.currency !== 'USD') {
         throw new PaymentError('PayPal sólo puede procesar esta orden en USD.', {
+          code: 'invalid_payment_currency',
+          status: 409
+        });
+      }
+      if (provider === 'mercadopago' && orderRow.currency !== 'ARS') {
+        throw new PaymentError('Mercado Pago sólo puede procesar esta orden en ARS.', {
           code: 'invalid_payment_currency',
           status: 409
         });
@@ -126,7 +143,7 @@ class PostgresPaymentRepository {
       RETURNING id
     `, [attemptId, providerReference]);
     if (result.rowCount !== 1) {
-      throw new PaymentError('No se pudo asociar la referencia de PayPal.', {
+      throw new PaymentError('No se pudo asociar la referencia del proveedor.', {
         code: 'payment_attempt_conflict',
         status: 409
       });
@@ -151,6 +168,35 @@ class PostgresPaymentRepository {
       JOIN gaby_acuarelas.orders o ON o.id = pa.order_id
       WHERE pa.provider = $1 AND pa.provider_reference = $2
     `, [provider, providerReference]);
+    if (result.rowCount === 0) return null;
+    const row = result.rows[0];
+    const itemRows = await loadItems(this.pool, row.order_id);
+    return {
+      id: row.id,
+      provider: row.provider,
+      providerReference: row.provider_reference,
+      status: row.status,
+      expectedCurrency: row.expected_currency,
+      expectedAmountCents: row.expected_amount_cents,
+      order: mapOrder({
+        id: row.order_id,
+        order_status: row.order_status,
+        currency: row.currency,
+        total_amount_cents: row.total_amount_cents
+      }, itemRows)
+    };
+  }
+
+  async findAttemptById(provider, attemptId) {
+    const result = await this.pool.query(`
+      SELECT pa.id, pa.provider, pa.provider_reference, pa.status,
+             pa.expected_currency, pa.expected_amount_cents,
+             o.id AS order_id, o.status AS order_status,
+             o.currency, o.total_amount_cents
+      FROM gaby_acuarelas.payment_attempts pa
+      JOIN gaby_acuarelas.orders o ON o.id = pa.order_id
+      WHERE pa.provider = $1 AND pa.id = $2
+    `, [provider, attemptId]);
     if (result.rowCount === 0) return null;
     const row = result.rows[0];
     const itemRows = await loadItems(this.pool, row.order_id);
@@ -216,9 +262,8 @@ class PostgresPaymentRepository {
           finalStatus = 'failed';
         } else {
           const current = attemptResult.rows[0];
-          const terminalAttempt = ['approved', 'rejected', 'cancelled', 'refunded'];
-          if (terminalAttempt.includes(current.attempt_status)
-              && current.attempt_status !== event.attemptStatus) {
+          if (!canApplyAttemptStatus(current.attempt_status, event.attemptStatus)
+              || !canApplyOrderStatus(current.order_status, event.orderStatus)) {
             finalStatus = 'ignored';
           } else {
             await client.query(`
@@ -226,14 +271,12 @@ class PostgresPaymentRepository {
               SET status = $2, updated_at = now()
               WHERE id = $1
             `, [event.attemptId, event.attemptStatus]);
-            if (event.orderStatus && current.order_status === 'pending') {
+            if (event.orderStatus && current.order_status !== event.orderStatus) {
               await client.query(`
                 UPDATE gaby_acuarelas.orders
                 SET status = $2, updated_at = now()
-                WHERE id = $1 AND status = 'pending'
-              `, [current.order_id, event.orderStatus]);
-            } else if (event.orderStatus && current.order_status !== event.orderStatus) {
-              finalStatus = 'ignored';
+                WHERE id = $1 AND status = $3
+              `, [current.order_id, event.orderStatus, current.order_status]);
             }
           }
         }
@@ -259,4 +302,8 @@ class PostgresPaymentRepository {
   }
 }
 
-module.exports = { PostgresPaymentRepository };
+module.exports = {
+  PostgresPaymentRepository,
+  canApplyAttemptStatus,
+  canApplyOrderStatus
+};

@@ -95,7 +95,7 @@
 - El carrito admite uno o varios productos y permite armar un combo libre.
 - Se comunica que existen promociones por compra múltiple, sin inventar ni aplicar un descuento.
 - El formulario visual solicita nombre, apellido y correo.
-- El carrito muestra subtotales USD y ARS cuando la cotización está disponible. PayPal continúa en Sandbox USD y Mercado Pago informa el importe ARS sin habilitar todavía el pago.
+- El carrito muestra subtotales USD y ARS cuando la cotización está disponible. PayPal opera en Sandbox USD y Mercado Pago queda preparado en Sandbox ARS, habilitándose sólo cuando sus credenciales de prueba están completas.
 
 ## D-014 - Valores provisionales del catálogo
 
@@ -119,7 +119,7 @@
 
 ## D-017 - Cotización comercial USD/ARS administrada
 
-- Estado: estructura, fuente y fórmula comercial aceptadas por Guillermo el 2026-09-22; integración de Mercado Pago pendiente.
+- Estado: estructura, fuente y fórmula comercial aceptadas por Guillermo el 2026-09-22; integración local de Mercado Pago implementada el 2026-09-23 y prueba real Sandbox pendiente de credenciales.
 - La cotización se administra en `gaby_acuarelas.exchange_rates` y conserva el historial de valores cargados.
 - Sólo puede existir una cotización activa por par de monedas.
 - El rol web puede consultar la tabla, pero no modificarla; las actualizaciones requieren la credencial administrativa.
@@ -129,6 +129,14 @@
 - Guillermo aprobó el 2026-09-22 usar la cotización de venta sin margen adicional y redondear cada precio hacia arriba al siguiente múltiplo de $100.
 - La web continúa usando la última cotización válida aunque esté desactualizada. Sólo oculta ARS si no existe una cotización utilizable o si su valor o fecha futura son inválidos.
 - Tres actualizaciones fallidas consecutivas o más de diez días desde la cotización efectiva activan una alerta administrativa persistente. El envío por correo queda preparado como requisito de etapa 5, cuando exista un servidor de correo habilitado.
+
+## D-018 - Mercado Pago mediante Checkout Pro Sandbox
+
+- Estado: implementación local aceptada para la etapa 4; validación real pendiente de credenciales Sandbox.
+- El backend usa la API de Preferencias de Checkout Pro y redirige únicamente al `sandbox_init_point`.
+- La orden ARS se crea antes que la preferencia y conserva los importes calculados por el servidor; el navegador nunca envía precios ni moneda.
+- El retorno del navegador no confirma el pago. Sólo un webhook con firma HMAC válida, seguido de consultas autenticadas del pago y la preferencia, puede cambiar el estado interno.
+- La integración permanece cerrada sin credenciales; una configuración parcial o un `MERCADOPAGO_ENV` distinto de `sandbox` impiden iniciar el servicio para evitar una habilitación insegura.
 
 ## Asuntos abiertos
 

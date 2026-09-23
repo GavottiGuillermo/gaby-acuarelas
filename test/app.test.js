@@ -209,3 +209,53 @@ test('expone checkout, captura y webhook PayPal sólo mediante el servicio confi
     assert.doesNotMatch(JSON.stringify(logs), /rawBody|headers|transmission/i);
   });
 });
+
+test('expone preferencia y webhook Mercado Pago sólo cuando Sandbox está configurado', async () => {
+  const calls = [];
+  const logger = { info() {}, warn() {}, error() {} };
+  const paymentService = {
+    async createMercadoPagoCheckout(body) {
+      calls.push(['checkout', body]);
+      return {
+        orderId: body.orderId,
+        preferenceId: '123-test-pref',
+        approveUrl: 'https://sandbox.mercadopago.com.ar/checkout/v1/redirect?pref_id=x',
+        replayed: false
+      };
+    },
+    async processMercadoPagoWebhook({ event, rawBody, dataId }) {
+      calls.push(['webhook', event, rawBody.toString('utf8'), dataId]);
+      return { duplicate: false, processed: true, processingStatus: 'processed' };
+    }
+  };
+  const app = createApp({
+    catalog,
+    paymentService,
+    paymentProviders: { paypal: false, mercadopago: true },
+    publicDir,
+    logger
+  });
+
+  await withServer(app, async (baseUrl) => {
+    const runtime = await fetch(`${baseUrl}/api/runtime`).then((result) => result.json());
+    assert.equal(runtime.payments.mercadopago, 'sandbox');
+    const checkoutResponse = await fetch(`${baseUrl}/api/checkout/mercadopago`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId: '2b7b14cc-d0c2-4d69-9e9f-35a42dd26f36' })
+    });
+    assert.equal(checkoutResponse.status, 201);
+
+    const webhookBody = JSON.stringify({
+      id: '10001', live_mode: false, type: 'payment', action: 'payment.updated', data: { id: '987654321' }
+    });
+    const webhookResponse = await fetch(`${baseUrl}/api/webhooks/mercadopago?data.id=987654321`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: webhookBody
+    });
+    assert.equal(webhookResponse.status, 200);
+    assert.equal(calls[1][2], webhookBody);
+    assert.equal(calls[1][3], '987654321');
+  });
+});

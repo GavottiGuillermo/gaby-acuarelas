@@ -80,7 +80,7 @@
             <div><small>Precio lanzamiento</small><strong>USD 5</strong><span class="price-ars" id="ebook-price-ars" hidden></span></div>
             <button class="button primary" type="button" data-add-product="ebook-10-acuarelas-botanicas">Agregar al carrito</button>
           </div>
-          <p class="fine-print">El precio ARS se calcula con la cotización de venta vigente y se redondea hacia arriba a múltiplos de $100. PayPal funciona en sandbox para pruebas.</p>
+          <p class="fine-print">El precio ARS se calcula con la cotización de venta vigente y se redondea hacia arriba a múltiplos de $100. Los medios de pago funcionan únicamente en Sandbox.</p>
         </div>
       </section>
 
@@ -171,7 +171,7 @@
           <details><summary>¿Necesito experiencia previa?<span>＋</span></summary><p>No. Cada propuesta indica su nivel y las clases de nivel 1 acompañan tus primeros pasos.</p></details>
           <details><summary>¿Puedo elegir varias clases?<span>＋</span></summary><p>Sí. El carrito permite armar un combo libre. Habrá promociones por varias clases, aunque el descuento todavía está por definirse.</p></details>
           <details><summary>¿Cómo recibiré la compra?<span>＋</span></summary><p>En la versión final, después de confirmar el pago recibirás por correo el enlace de acceso. Su vigencia está pendiente de definición.</p></details>
-          <details><summary>¿La página ya procesa pagos?<span>＋</span></summary><p>PayPal está en modo sandbox para pruebas en USD: no son cobros reales ni habilitan entrega. Los precios ARS ya se calculan con la cotización vigente, pero Mercado Pago continúa deshabilitado mientras se completa su integración sandbox.</p></details>
+          <details><summary>¿La página ya procesa pagos?<span>＋</span></summary><p>PayPal en USD y Mercado Pago en ARS están preparados exclusivamente para pruebas Sandbox. No son cobros reales ni habilitan entrega; cada proveedor sólo aparece disponible cuando sus credenciales de prueba están configuradas.</p></details>
         </div>
       </section>
     </main>
@@ -184,7 +184,7 @@
         <a href="https://www.youtube.com/channel/UCU07jIoFoo5Y7QbB82ydnBw" target="_blank" rel="noreferrer">YouTube</a>
         <a href="https://www.pinterest.es/gabyacuarelas/boards/" target="_blank" rel="noreferrer">Pinterest</a>
       </div>
-      <small>© <span id="year"></span> Gaby Acuarelas · PayPal sandbox, sin cobros reales ni entrega automática</small>
+      <small>© <span id="year"></span> Gaby Acuarelas · Pagos Sandbox, sin cobros reales ni entrega automática</small>
     </footer>
 
     <dialog class="cart-dialog" id="cart-dialog" aria-labelledby="cart-title">
@@ -207,7 +207,7 @@
           </div>
           <label>Correo electrónico<input name="email" type="email" autocomplete="email" required></label>
         </fieldset>
-        <p class="demo-warning"><strong>PayPal sandbox:</strong> crea una orden de prueba en USD, sin cobros reales ni entrega automática.</p>
+        <p class="demo-warning"><strong>Pagos Sandbox:</strong> PayPal usa USD y Mercado Pago usa ARS. No hay cobros reales ni entrega automática.</p>
         <div class="payment-actions" aria-label="Opciones de pago previstas">
           <button class="button primary cart-submit" type="submit" data-payment-provider="paypal">
             <span>Continuar con PayPal</span>
@@ -228,7 +228,7 @@
 
         <div class="purchase-processing-view" id="purchase-processing-view" hidden>
           <span class="purchase-processing-mark" aria-hidden="true"><span></span></span>
-          <p class="kicker">PayPal sandbox</p>
+          <p class="kicker" id="purchase-processing-kicker">Pago sandbox</p>
           <h2 id="purchase-processing-title">Estamos confirmando tu pago</h2>
           <p class="purchase-processing-description" id="purchase-processing-description">Estamos registrando la captura y esperando la confirmación segura del webhook de PayPal.</p>
           <div class="purchase-processing-order" id="purchase-processing-order" hidden>

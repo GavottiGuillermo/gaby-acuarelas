@@ -3,6 +3,8 @@ const { PaymentError } = require('./errors');
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const PAYPAL_ID_PATTERN = /^[A-Z0-9]{1,36}$/;
+const MERCADOPAGO_REFERENCE_PATTERN = /^[A-Za-z0-9-]{1,128}$/;
+const MERCADOPAGO_PAYMENT_ID_PATTERN = /^\d{1,32}$/;
 
 const PAYPAL_EVENT_OUTCOMES = Object.freeze({
   'PAYMENT.CAPTURE.COMPLETED': { attemptStatus: 'approved', orderStatus: 'approved' },
@@ -10,6 +12,17 @@ const PAYPAL_EVENT_OUTCOMES = Object.freeze({
   'PAYMENT.CAPTURE.PENDING': { attemptStatus: 'pending', orderStatus: null },
   'CHECKOUT.PAYMENT-APPROVAL.REVERSED': { attemptStatus: 'cancelled', orderStatus: 'cancelled' },
   'CHECKOUT.ORDER.VOIDED': { attemptStatus: 'cancelled', orderStatus: 'cancelled' }
+});
+
+const MERCADOPAGO_STATUS_OUTCOMES = Object.freeze({
+  approved: { attemptStatus: 'approved', orderStatus: 'approved' },
+  pending: { attemptStatus: 'pending', orderStatus: null },
+  in_process: { attemptStatus: 'pending', orderStatus: null },
+  authorized: { attemptStatus: 'pending', orderStatus: null },
+  rejected: { attemptStatus: 'rejected', orderStatus: 'rejected' },
+  cancelled: { attemptStatus: 'cancelled', orderStatus: 'cancelled' },
+  refunded: { attemptStatus: 'refunded', orderStatus: 'refunded' },
+  charged_back: { attemptStatus: 'refunded', orderStatus: 'refunded' }
 });
 
 function assertOnlyKeys(object, allowedKeys) {
@@ -39,6 +52,15 @@ function decimalToCents(value) {
   const [units, decimals] = value.split('.');
   const cents = Number(units) * 100 + Number(decimals);
   return Number.isSafeInteger(cents) ? cents : null;
+}
+
+function numberToCents(value) {
+  const amount = Number(value);
+  if (!Number.isFinite(amount) || amount <= 0) return null;
+  const cents = Math.round(amount * 100);
+  return Number.isSafeInteger(cents) && Math.abs(amount * 100 - cents) < 0.000001
+    ? cents
+    : null;
 }
 
 function providerOrderIdFromEvent(event) {
@@ -103,10 +125,55 @@ function approvalUrl(providerOrder) {
   return providerOrder?.links?.find((link) => ['payer-action', 'approve'].includes(link.rel))?.href;
 }
 
+function assertReconciledMercadoPagoPreference(preference, attempt) {
+  const identityMatches = preference?.id === attempt.providerReference
+    && preference?.external_reference === attempt.order.id
+    && preference?.metadata?.order_id === attempt.order.id
+    && preference?.metadata?.payment_attempt_id === attempt.id;
+  const expectedItems = attempt.order.items.map((item) => ({
+    id: item.productId,
+    quantity: item.quantity,
+    currency: attempt.expectedCurrency,
+    amountCents: item.unitAmountCents
+  })).sort((left, right) => left.id.localeCompare(right.id));
+  const providerItems = Array.isArray(preference?.items)
+    ? preference.items.map((item) => ({
+        id: item.id,
+        quantity: Number(item.quantity),
+        currency: item.currency_id,
+        amountCents: numberToCents(item.unit_price)
+      })).sort((left, right) => String(left.id).localeCompare(String(right.id)))
+    : [];
+
+  if (!identityMatches || JSON.stringify(expectedItems) !== JSON.stringify(providerItems)) {
+    throw new PaymentError('La preferencia de Mercado Pago no coincide con la compra interna.', {
+      code: 'payment_reconciliation_failed',
+      status: 409
+    });
+  }
+}
+
+function assertReconciledMercadoPagoPayment(payment, paymentId, attempt) {
+  const identityMatches = String(payment?.id) === paymentId
+    && payment?.live_mode === false
+    && payment?.external_reference === attempt.order.id
+    && payment?.metadata?.order_id === attempt.order.id
+    && payment?.metadata?.payment_attempt_id === attempt.id;
+  const amountMatches = payment?.currency_id === attempt.expectedCurrency
+    && numberToCents(payment?.transaction_amount) === attempt.expectedAmountCents;
+  if (!identityMatches || !amountMatches) {
+    throw new PaymentError('El pago de Mercado Pago no coincide con referencia, importe o moneda.', {
+      code: 'payment_reconciliation_failed',
+      status: 409
+    });
+  }
+}
+
 class PaymentService {
-  constructor({ repository, paypalClient, publicBaseUrl }) {
+  constructor({ repository, paypalClient = null, mercadoPagoClient = null, publicBaseUrl }) {
     this.repository = repository;
     this.paypalClient = paypalClient;
+    this.mercadoPagoClient = mercadoPagoClient;
     this.publicBaseUrl = String(publicBaseUrl || '').replace(/\/$/, '');
     let parsedBaseUrl;
     try {
@@ -155,6 +222,52 @@ class PaymentService {
         orderId: attempt.order.id,
         providerOrderId: providerOrder.id,
         approveUrl: providerOrder.approveUrl,
+        replayed: false
+      };
+    } catch (error) {
+      await this.repository.markAttemptError(attempt.id);
+      throw error;
+    }
+  }
+
+  async createMercadoPagoCheckout(body) {
+    assertOnlyKeys(body, ['orderId']);
+    assertUuid(body.orderId);
+
+    const attempt = await this.repository.prepareAttempt(body.orderId, 'mercadopago');
+    if (attempt.replayed) {
+      const preference = await this.mercadoPagoClient.getPreference(attempt.providerReference);
+      if (typeof preference?.sandbox_init_point !== 'string' || !preference.sandbox_init_point) {
+        throw new PaymentError('La preferencia de Mercado Pago ya no admite una prueba Sandbox.', {
+          code: 'mercadopago_preference_not_approvable',
+          status: 409
+        });
+      }
+      return {
+        orderId: attempt.order.id,
+        preferenceId: attempt.providerReference,
+        approveUrl: preference.sandbox_init_point,
+        replayed: true
+      };
+    }
+
+    try {
+      const preference = await this.mercadoPagoClient.createPreference({
+        order: attempt.order,
+        attemptId: attempt.id,
+        returnBaseUrl: this.publicBaseUrl
+      });
+      if (!MERCADOPAGO_REFERENCE_PATTERN.test(preference.id)) {
+        throw new PaymentError('Mercado Pago devolvió una referencia no válida.', {
+          code: 'mercadopago_invalid_response',
+          status: 502
+        });
+      }
+      await this.repository.attachProviderReference(attempt.id, preference.id);
+      return {
+        orderId: attempt.order.id,
+        preferenceId: preference.id,
+        approveUrl: preference.sandboxInitPoint,
         replayed: false
       };
     } catch (error) {
@@ -253,12 +366,79 @@ class PaymentService {
       processingStatus: 'processed'
     });
   }
+
+  async processMercadoPagoWebhook({ headers, event, rawBody, dataId }) {
+    const eventId = String(event?.id || '');
+    const paymentId = String(event?.data?.id || '');
+    if (!event || typeof event !== 'object' || Array.isArray(event)
+        || event.type !== 'payment' || event.live_mode !== false || !eventId
+        || !MERCADOPAGO_PAYMENT_ID_PATTERN.test(paymentId)
+        || typeof dataId !== 'string' || dataId.toLowerCase() !== paymentId.toLowerCase()) {
+      throw new PaymentError('El webhook de Mercado Pago no es válido.', {
+        code: 'invalid_webhook'
+      });
+    }
+    if (!this.mercadoPagoClient.verifyWebhook({ headers, dataId })) {
+      throw new PaymentError('La firma del webhook de Mercado Pago no es válida.', {
+        code: 'invalid_webhook_signature'
+      });
+    }
+
+    const payloadSha256 = crypto.createHash('sha256').update(rawBody).digest('hex');
+    if (await this.repository.hasEvent('mercadopago', eventId)) {
+      return { duplicate: true, processed: false };
+    }
+
+    const payment = await this.mercadoPagoClient.getPayment(paymentId);
+    const attemptId = payment?.metadata?.payment_attempt_id;
+    if (typeof attemptId !== 'string' || !UUID_PATTERN.test(attemptId)) {
+      return this.repository.applyWebhookEvent({
+        provider: 'mercadopago',
+        providerEventId: eventId,
+        eventType: `${event.type}:${event.action || 'unknown'}`,
+        payloadSha256,
+        attemptId: null,
+        processingStatus: 'ignored'
+      });
+    }
+
+    const attempt = await this.repository.findAttemptById('mercadopago', attemptId);
+    if (!attempt || !attempt.providerReference) {
+      return this.repository.applyWebhookEvent({
+        provider: 'mercadopago',
+        providerEventId: eventId,
+        eventType: `${event.type}:${event.action || 'unknown'}`,
+        payloadSha256,
+        attemptId: null,
+        processingStatus: 'ignored'
+      });
+    }
+
+    const preference = await this.mercadoPagoClient.getPreference(attempt.providerReference);
+    assertReconciledMercadoPagoPreference(preference, attempt);
+    assertReconciledMercadoPagoPayment(payment, paymentId, attempt);
+    const outcome = MERCADOPAGO_STATUS_OUTCOMES[payment.status];
+    return this.repository.applyWebhookEvent({
+      provider: 'mercadopago',
+      providerEventId: eventId,
+      eventType: `${event.type}:${event.action || 'unknown'}:${payment.status || 'unknown'}`,
+      payloadSha256,
+      attemptId: attempt.id,
+      attemptStatus: outcome?.attemptStatus,
+      orderStatus: outcome?.orderStatus,
+      processingStatus: outcome ? 'processed' : 'ignored'
+    });
+  }
 }
 
 module.exports = {
   PaymentService,
   PAYPAL_EVENT_OUTCOMES,
+  MERCADOPAGO_STATUS_OUTCOMES,
   assertReconciledOrder,
+  assertReconciledMercadoPagoPreference,
+  assertReconciledMercadoPagoPayment,
   decimalToCents,
+  numberToCents,
   providerOrderIdFromEvent
 };

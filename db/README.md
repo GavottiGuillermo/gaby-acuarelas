@@ -88,4 +88,4 @@ INSERT INTO gaby_acuarelas.exchange_rates (
 COMMIT;
 ```
 
-Esta tabla todavía no calcula precios ni modifica órdenes. Antes de usarla para Mercado Pago se deben aprobar y probar la fuente, el margen, el redondeo, la antigüedad máxima y el comportamiento cuando no haya una cotización válida.
+La aplicación usa esta tabla para calcular los precios ARS y congelarlos en cada orden Mercado Pago. La fórmula aprobada usa la cotización de venta sin margen y redondea cada producto hacia arriba al siguiente múltiplo de $100. Una orden ya creada no cambia cuando se actualiza la cotización.

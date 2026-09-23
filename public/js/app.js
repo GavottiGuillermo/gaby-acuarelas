@@ -20,10 +20,12 @@ const purchaseSuccessDelivery = document.querySelector('#purchase-success-delive
 const purchaseSuccessView = document.querySelector('#purchase-success-view');
 const purchaseProcessingView = document.querySelector('#purchase-processing-view');
 const purchaseProcessingTitle = document.querySelector('#purchase-processing-title');
+const purchaseProcessingKicker = document.querySelector('#purchase-processing-kicker');
 const purchaseProcessingDescription = document.querySelector('#purchase-processing-description');
 const purchaseProcessingNote = document.querySelector('#purchase-processing-note');
 const purchaseProcessingOrder = document.querySelector('#purchase-processing-order');
 const purchaseProcessingSummary = document.querySelector('#purchase-processing-summary');
+const purchaseSuccessDescription = document.querySelector('#purchase-success-description');
 const ebookPriceArs = document.querySelector('#ebook-price-ars');
 const mercadoPagoPrice = document.querySelector('#mercadopago-price');
 
@@ -35,6 +37,7 @@ const PAYPAL_ORDER_BACKGROUND_POLL_INTERVAL_MS = 5000;
 const PAYPAL_CLOSED_DIALOG_POLL_INTERVAL_MS = 3000;
 const PAYPAL_CLOSED_DIALOG_POLL_ATTEMPTS = 200;
 const PAYPAL_PENDING_ORDER_KEY = 'gaby-paypal-pending-order';
+const MERCADOPAGO_PENDING_ORDER_KEY = 'gaby-mercadopago-pending-order';
 const PAYPAL_CANCELLED_MESSAGE = 'Cancelaste el pago sandbox en PayPal. Podés volver a intentarlo desde el carrito.';
 const PAYPAL_ORDER_STATUSES = new Map([
   ['rejected', {
@@ -48,6 +51,20 @@ const PAYPAL_ORDER_STATUSES = new Map([
   ['refunded', {
     tone: 'warning',
     message: 'PayPal informó la devolución del pago sandbox. No se realizará ninguna entrega automática.'
+  }]
+]);
+const MERCADOPAGO_ORDER_STATUSES = new Map([
+  ['rejected', {
+    tone: 'error',
+    message: 'Mercado Pago informó que el pago Sandbox fue rechazado. La orden no fue aprobada y no se realizará ninguna entrega.'
+  }],
+  ['cancelled', {
+    tone: 'warning',
+    message: 'Mercado Pago informó que el pago Sandbox fue cancelado. La orden no fue aprobada y podés iniciar una nueva prueba.'
+  }],
+  ['refunded', {
+    tone: 'warning',
+    message: 'Mercado Pago informó la devolución del pago Sandbox. No se realizará ninguna entrega automática.'
   }]
 ]);
 const PAYPAL_PROCESSING_COPY = {
@@ -244,7 +261,7 @@ function renderCart() {
     ? ars.format(arsPrices.reduce((sum, amount) => sum + amount, 0))
     : '';
   mercadoPagoPrice.textContent = hasArsTotal
-    ? `${cartTotalArs.textContent} · Sandbox pendiente`
+    ? `${cartTotalArs.textContent} · ${state.runtime?.payments?.mercadopago === 'sandbox' ? 'Sandbox' : 'Sandbox pendiente'}`
     : 'Precio ARS no disponible';
   const selectedCourses = selected.filter((product) => product.type === 'course').length;
   cartPromotion.textContent = selectedCourses >= 2
@@ -280,13 +297,14 @@ function secureRandomHex(byteLength = 16) {
   return [...bytes].map((byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
-async function idempotencyKeyFor(customer, items) {
+async function idempotencyKeyFor(customer, items, paymentProvider) {
   if (!window.crypto?.subtle) {
     throw new Error('Este navegador no puede proteger la clave del pedido.');
   }
 
   const requestFingerprint = JSON.stringify({
     customer,
+    paymentProvider,
     items: items.map((item) => item.productId).sort()
   });
   const digest = await window.crypto.subtle.digest(
@@ -303,6 +321,22 @@ async function idempotencyKeyFor(customer, items) {
   const idempotencyKey = `web-${secureRandomHex()}`;
   sessionStorage.setItem(storageKey, idempotencyKey);
   return idempotencyKey;
+}
+
+function mercadoPagoSandboxApprovalUrl(value) {
+  let url;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error('Mercado Pago no devolvió una URL de aprobación válida.');
+  }
+
+  const sandboxHost = url.hostname === 'sandbox.mercadopago.com.ar'
+    || url.hostname.endsWith('.sandbox.mercadopago.com.ar');
+  if (url.protocol !== 'https:' || !sandboxHost) {
+    throw new Error('El servidor no devolvió una URL de Mercado Pago Sandbox.');
+  }
+  return url.href;
 }
 
 function paypalSandboxApprovalUrl(value) {
@@ -324,6 +358,16 @@ function paypalSandboxApprovalUrl(value) {
 function clearPayPalReturnParameters() {
   const url = new URL(window.location.href);
   ['paypal', 'orderId', 'token', 'PayerID'].forEach((name) => url.searchParams.delete(name));
+  window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+}
+
+function clearMercadoPagoReturnParameters() {
+  const url = new URL(window.location.href);
+  [
+    'mercadopago', 'orderId', 'collection_id', 'collection_status', 'payment_id',
+    'status', 'external_reference', 'payment_type', 'merchant_order_id', 'preference_id',
+    'site_id', 'processing_mode', 'merchant_account_id'
+  ].forEach((name) => url.searchParams.delete(name));
   window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
 }
 
@@ -369,6 +413,30 @@ function forgetPendingPayPalOrder() {
   }
 }
 
+function rememberPendingMercadoPagoOrder(orderId) {
+  try {
+    sessionStorage.setItem(MERCADOPAGO_PENDING_ORDER_KEY, orderId);
+  } catch {
+    // La consulta inmediata sigue funcionando aunque el navegador bloquee el almacenamiento.
+  }
+}
+
+function pendingMercadoPagoOrder() {
+  try {
+    return sessionStorage.getItem(MERCADOPAGO_PENDING_ORDER_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function forgetPendingMercadoPagoOrder() {
+  try {
+    sessionStorage.removeItem(MERCADOPAGO_PENDING_ORDER_KEY);
+  } catch {
+    // No hay estado sensible: sólo se intenta limpiar un identificador interno.
+  }
+}
+
 function clearCompletedCart() {
   state.cart.clear();
   checkoutForm.reset();
@@ -403,7 +471,7 @@ function deliveryDetailsFor(order) {
   return details;
 }
 
-function updateProcessingSummary(order = null) {
+function updateProcessingSummary(order = null, provider = 'paypal') {
   const orderItems = Array.isArray(order?.items) ? order.items : null;
   const localItems = selectedProducts();
   const itemCount = orderItems
@@ -411,25 +479,37 @@ function updateProcessingSummary(order = null) {
     : localItems.length;
   const total = orderItems
     ? Number(order.totalAmountCents) / 100
-    : localItems.reduce((sum, product) => sum + product.priceUsd, 0);
+    : localItems.reduce((sum, product) => sum + (
+        provider === 'mercadopago' ? Number(productPriceArs(product) || 0) : product.priceUsd
+      ), 0);
 
   purchaseProcessingOrder.hidden = itemCount === 0;
+  const formatter = order?.currency === 'ARS' || (!order && provider === 'mercadopago') ? ars : usd;
   purchaseProcessingSummary.textContent = itemCount > 0
-    ? `${itemCount} ${itemCount === 1 ? 'producto' : 'productos'} · ${usd.format(total)}`
+    ? `${itemCount} ${itemCount === 1 ? 'producto' : 'productos'} · ${formatter.format(total)}`
     : '';
 }
 
-function showPurchaseProcessing(mode = 'waiting', order = null, openDialog = true) {
-  const copy = PAYPAL_PROCESSING_COPY[mode] || PAYPAL_PROCESSING_COPY.waiting;
+function showPurchaseProcessing(mode = 'waiting', order = null, openDialog = true, provider = 'paypal') {
+  const baseCopy = PAYPAL_PROCESSING_COPY[mode] || PAYPAL_PROCESSING_COPY.waiting;
+  const copy = provider === 'mercadopago'
+    ? {
+        ...baseCopy,
+        description: baseCopy.description.replaceAll('PayPal', 'Mercado Pago')
+      }
+    : baseCopy;
   purchaseSuccessDialog.dataset.state = mode;
   purchaseSuccessDialog.setAttribute('aria-labelledby', 'purchase-processing-title');
   purchaseSuccessDialog.setAttribute('aria-describedby', 'purchase-processing-description');
+  purchaseProcessingKicker.textContent = provider === 'mercadopago'
+    ? 'Mercado Pago sandbox'
+    : 'PayPal sandbox';
   purchaseProcessingTitle.textContent = copy.title;
   purchaseProcessingDescription.textContent = copy.description;
   purchaseProcessingNote.textContent = copy.note;
   purchaseProcessingView.hidden = false;
   purchaseSuccessView.hidden = true;
-  updateProcessingSummary(order);
+  updateProcessingSummary(order, provider);
 
   if (cartDialog.open) cartDialog.close();
   if (openDialog && !purchaseSuccessDialog.open) purchaseSuccessDialog.showModal();
@@ -442,7 +522,7 @@ function showCartPaymentStatus(message, tone) {
   openCart();
 }
 
-function showPurchaseSuccess(order) {
+function showPurchaseSuccess(order, provider = 'paypal') {
   stopClosedDialogPayPalMonitor();
   const items = Array.isArray(order.items) ? order.items : [];
   purchaseSuccessItems.replaceChildren(...items.map((item) => {
@@ -450,10 +530,12 @@ function showPurchaseSuccess(order) {
     const copy = createElement('span');
     copy.appendChild(createElement('strong', '', item.title));
     copy.appendChild(createElement('small', '', item.productType === 'ebook' ? 'Ebook PDF' : 'Clase online'));
-    row.append(copy, createElement('span', 'purchase-success-price', usd.format(item.lineAmountCents / 100)));
+    const formatter = order.currency === 'ARS' ? ars : usd;
+    row.append(copy, createElement('span', 'purchase-success-price', formatter.format(item.lineAmountCents / 100)));
     return row;
   }));
-  purchaseSuccessTotal.textContent = usd.format(order.totalAmountCents / 100);
+  const formatter = order.currency === 'ARS' ? ars : usd;
+  purchaseSuccessTotal.textContent = formatter.format(order.totalAmountCents / 100);
   purchaseSuccessReference.textContent = `Orden de prueba ${order.id.slice(0, 8).toUpperCase()}`;
   purchaseSuccessReference.title = order.id;
   purchaseSuccessDelivery.replaceChildren(...deliveryDetailsFor(order).map((detail) => createElement('li', '', detail)));
@@ -461,6 +543,7 @@ function showPurchaseSuccess(order) {
   purchaseSuccessDialog.dataset.state = 'success';
   purchaseSuccessDialog.setAttribute('aria-labelledby', 'purchase-success-title');
   purchaseSuccessDialog.setAttribute('aria-describedby', 'purchase-success-description');
+  purchaseSuccessDescription.textContent = `${provider === 'mercadopago' ? 'Mercado Pago' : 'PayPal'} confirmó tu pago Sandbox mediante su webhook firmado.`;
   purchaseProcessingView.hidden = true;
   purchaseSuccessView.hidden = false;
   clearCompletedCart();
@@ -475,21 +558,24 @@ function stopClosedDialogPayPalMonitor() {
   closedDialogPayPalMonitor = null;
 }
 
-function handleTerminalPayPalOrder(order) {
+function handleTerminalPayPalOrder(order, provider = 'paypal') {
   if (!order || order.status === 'pending') return false;
   if (state.finalizedPayPalOrderId === order.id) return true;
 
   if (order.status === 'approved') {
     state.finalizedPayPalOrderId = order.id;
-    forgetPendingPayPalOrder();
-    showPurchaseSuccess(order);
+    if (provider === 'mercadopago') forgetPendingMercadoPagoOrder();
+    else forgetPendingPayPalOrder();
+    showPurchaseSuccess(order, provider);
     return true;
   }
 
-  const status = PAYPAL_ORDER_STATUSES.get(order.status);
+  const statusMap = provider === 'mercadopago' ? MERCADOPAGO_ORDER_STATUSES : PAYPAL_ORDER_STATUSES;
+  const status = statusMap.get(order.status);
   if (status) {
     state.finalizedPayPalOrderId = order.id;
-    forgetPendingPayPalOrder();
+    if (provider === 'mercadopago') forgetPendingMercadoPagoOrder();
+    else forgetPendingPayPalOrder();
     showCartPaymentStatus(status.message, status.tone);
     return true;
   }
@@ -512,8 +598,8 @@ async function checkClosedDialogPayPalOrder() {
       cache: 'no-store'
     });
     if (!payload.order || typeof payload.order.status !== 'string') return;
-    if (payload.order.status === 'pending') updateProcessingSummary(payload.order);
-    handleTerminalPayPalOrder(payload.order);
+    if (payload.order.status === 'pending') updateProcessingSummary(payload.order, monitor.provider);
+    handleTerminalPayPalOrder(payload.order, monitor.provider);
   } catch {
     // El monitor principal y una futura recarga conservan la posibilidad de reintento.
   } finally {
@@ -521,11 +607,12 @@ async function checkClosedDialogPayPalOrder() {
   }
 }
 
-function startClosedDialogPayPalMonitor(orderId) {
+function startClosedDialogPayPalMonitor(orderId, provider = 'paypal') {
   if (!orderId || closedDialogPayPalMonitor?.orderId === orderId) return;
   stopClosedDialogPayPalMonitor();
   closedDialogPayPalMonitor = {
     orderId,
+    provider,
     attempts: 0,
     inFlight: false,
     timer: null
@@ -541,7 +628,7 @@ function wait(milliseconds) {
   return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 }
 
-async function waitForPayPalOrder(orderId, { continueInBackground = true } = {}) {
+async function waitForPayPalOrder(orderId, { continueInBackground = true, provider = 'paypal' } = {}) {
   let lastOrder = null;
   let lastError = null;
   const totalAttempts = PAYPAL_ORDER_FAST_POLL_ATTEMPTS
@@ -557,7 +644,7 @@ async function waitForPayPalOrder(orderId, { continueInBackground = true } = {})
       }
       lastOrder = payload.order;
       lastError = null;
-      if (lastOrder.status === 'pending') updateProcessingSummary(lastOrder);
+      if (lastOrder.status === 'pending') updateProcessingSummary(lastOrder, provider);
       if (lastOrder.status !== 'pending') return lastOrder;
     } catch (error) {
       lastError = error;
@@ -565,7 +652,7 @@ async function waitForPayPalOrder(orderId, { continueInBackground = true } = {})
 
     const fastPollingFinished = attempt === PAYPAL_ORDER_FAST_POLL_ATTEMPTS - 1;
     if (continueInBackground && fastPollingFinished) {
-      showPurchaseProcessing('delayed', lastOrder, false);
+      showPurchaseProcessing('delayed', lastOrder, false, provider);
     }
 
     if (attempt < totalAttempts - 1) {
@@ -580,23 +667,23 @@ async function waitForPayPalOrder(orderId, { continueInBackground = true } = {})
   return lastOrder;
 }
 
-async function showPayPalOrderResult(orderId, captureError = null) {
-  showPurchaseProcessing('waiting');
+async function showPayPalOrderResult(orderId, captureError = null, provider = 'paypal') {
+  showPurchaseProcessing('waiting', null, true, provider);
 
   try {
     const continueInBackground = !captureError
       || captureError.code === 'payment_attempt_already_processed';
-    const order = await waitForPayPalOrder(orderId, { continueInBackground });
-    if (handleTerminalPayPalOrder(order)) return;
+    const order = await waitForPayPalOrder(orderId, { continueInBackground, provider });
+    if (handleTerminalPayPalOrder(order, provider)) return;
 
     if (captureError && captureError.code !== 'payment_attempt_already_processed') {
-      showPurchaseProcessing('error', order, false);
+      showPurchaseProcessing('error', order, false, provider);
       return;
     }
 
-    showPurchaseProcessing('delayed', order, false);
+    showPurchaseProcessing('delayed', order, false, provider);
   } catch {
-    showPurchaseProcessing('error', null, false);
+    showPurchaseProcessing('error', null, false, provider);
   }
 }
 
@@ -622,6 +709,7 @@ async function loadRuntime() {
       }
     };
   }
+  if (state.products.length > 0) renderCart();
 }
 
 async function loadPricing() {
@@ -678,7 +766,7 @@ async function startPayPalCheckout(customer) {
   }
 
   const items = selectedProducts().map((product) => ({ productId: product.id }));
-  const idempotencyKey = await idempotencyKeyFor(customer, items);
+  const idempotencyKey = await idempotencyKeyFor(customer, items, 'paypal');
 
   showFormStatus('Creando la orden sandbox...', 'pending');
   const orderPayload = await requestJson('/api/orders', {
@@ -696,8 +784,37 @@ async function startPayPalCheckout(customer) {
   window.location.assign(paypalSandboxApprovalUrl(checkoutPayload.checkout?.approveUrl));
 }
 
+async function startMercadoPagoCheckout(customer) {
+  if (state.runtime?.payments?.mercadopago !== 'sandbox') {
+    showFormStatus('Mercado Pago Sandbox todavía no está disponible en este entorno.', 'error');
+    return;
+  }
+  if (!state.pricing || state.pricesArs.size === 0) {
+    showFormStatus('Los precios ARS todavía no están disponibles para iniciar Mercado Pago.', 'error');
+    return;
+  }
+
+  const items = selectedProducts().map((product) => ({ productId: product.id }));
+  const idempotencyKey = await idempotencyKeyFor(customer, items, 'mercadopago');
+  showFormStatus('Creando la orden ARS de prueba...', 'pending');
+  const orderPayload = await requestJson('/api/orders', {
+    method: 'POST',
+    headers: { 'Idempotency-Key': idempotencyKey },
+    body: JSON.stringify({ customer, items, paymentProvider: 'mercadopago' })
+  });
+
+  showFormStatus('Abriendo Mercado Pago Sandbox...', 'pending');
+  const checkoutPayload = await requestJson('/api/checkout/mercadopago', {
+    method: 'POST',
+    body: JSON.stringify({ orderId: orderPayload.order.id })
+  });
+  rememberPendingMercadoPagoOrder(orderPayload.order.id);
+  window.location.assign(mercadoPagoSandboxApprovalUrl(checkoutPayload.checkout?.approveUrl));
+}
+
 async function capturePayPalReturn() {
   const params = new URLSearchParams(window.location.search);
+  if (params.has('mercadopago')) return;
   const paypalStatus = params.get('paypal');
   if (!paypalStatus) {
     const pendingOrderId = pendingPayPalOrder();
@@ -755,6 +872,35 @@ async function capturePayPalReturn() {
   }
 }
 
+async function captureMercadoPagoReturn() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('paypal')) return;
+  const mercadoPagoStatus = params.get('mercadopago');
+  const orderId = params.get('orderId') || pendingMercadoPagoOrder();
+  if (!mercadoPagoStatus && !orderId) return;
+  if (mercadoPagoStatus && !['success', 'pending', 'failure'].includes(mercadoPagoStatus)) {
+    clearMercadoPagoReturnParameters();
+    showFormStatus('No pudimos leer el retorno de Mercado Pago Sandbox. La orden no se considera pagada.', 'error');
+    openCart();
+    return;
+  }
+  if (!orderId) {
+    clearMercadoPagoReturnParameters();
+    showFormStatus('Falta la referencia interna de la orden de Mercado Pago. No se considera pagada.', 'error');
+    openCart();
+    return;
+  }
+
+  rememberPendingMercadoPagoOrder(orderId);
+  clearMercadoPagoReturnParameters();
+  setSubmitting(true);
+  try {
+    await showPayPalOrderResult(orderId, null, 'mercadopago');
+  } finally {
+    setSubmitting(false);
+  }
+}
+
 filterButtons.forEach((button) => {
   button.addEventListener('click', () => {
     state.filter = button.dataset.filter;
@@ -801,8 +947,10 @@ purchaseSuccessDialog.addEventListener('click', (event) => {
 });
 purchaseSuccessDialog.addEventListener('close', () => {
   if (purchaseSuccessDialog.dataset.state === 'success') return;
-  const orderId = pendingPayPalOrder();
-  if (orderId) startClosedDialogPayPalMonitor(orderId);
+  const paypalOrderId = pendingPayPalOrder();
+  const mercadoPagoOrderId = pendingMercadoPagoOrder();
+  if (paypalOrderId) startClosedDialogPayPalMonitor(paypalOrderId, 'paypal');
+  else if (mercadoPagoOrderId) startClosedDialogPayPalMonitor(mercadoPagoOrderId, 'mercadopago');
 });
 
 checkoutForm.addEventListener('submit', async (event) => {
@@ -810,11 +958,11 @@ checkoutForm.addEventListener('submit', async (event) => {
   if (state.cart.size === 0 || state.submitting) return;
   if (!checkoutForm.reportValidity()) return;
   const provider = event.submitter?.dataset.paymentProvider;
-  const customer = provider === 'paypal' ? getCheckoutCustomer() : null;
+  const customer = ['paypal', 'mercadopago'].includes(provider) ? getCheckoutCustomer() : null;
   setSubmitting(true);
   try {
     if (provider === 'mercadopago') {
-      showFormStatus('Mercado Pago se habilitará cuando confirmemos los importes en ARS; no hay cobros por ese medio todavía.', 'warning');
+      await startMercadoPagoCheckout(customer);
       return;
     }
     if (provider === 'paypal') {
@@ -830,4 +978,7 @@ checkoutForm.addEventListener('submit', async (event) => {
 });
 
 document.querySelector('#year').textContent = new Date().getFullYear();
-Promise.all([loadCatalog(), loadRuntime(), loadPricing()]).then(capturePayPalReturn);
+Promise.all([loadCatalog(), loadRuntime(), loadPricing()]).then(async () => {
+  await capturePayPalReturn();
+  await captureMercadoPagoReturn();
+});

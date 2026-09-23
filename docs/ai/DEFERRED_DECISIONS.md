@@ -9,7 +9,7 @@ El 2026-09-15 Guillermo autorizó avanzar entre etapas sin esperar todas las res
 | P-003 | Catálogo | Tratar las 40 clases relevadas como inventario completo para la demo. | Antes de producción |
 | P-004 | Hortensias mágicas | Categoría especial de 2,5 horas, USD 15. | Cuando Ceci confirme precios |
 | P-005 | Hortensias realista | Mantener categoría triple y USD 25, siguiendo la ficha individual. | Cuando Ceci confirme precios |
-| P-006 | Moneda | Resuelta el 2026-09-22: conservar USD como base y mostrar ARS calculado con la venta oficial de DolarApi, redondeando hacia arriba a múltiplos de $100. Mercado Pago sigue sin procesar pagos hasta completar su integración sandbox. | Integración Mercado Pago en etapa 4 |
+| P-006 | Moneda | Resuelta el 2026-09-22: conservar USD como base y mostrar ARS calculado con la venta oficial de DolarApi, redondeando hacia arriba a múltiplos de $100. La estructura de Mercado Pago Sandbox quedó implementada; falta probarla con credenciales de prueba. | Pruebas Mercado Pago en etapa 4 |
 | P-007 | Combos | Implementar carrito y permitir armar un combo libre. Informar que hay promociones sin calcular descuentos todavía. | Cuando Ceci defina la promoción |
 | P-008 | Datos de compra | Solicitar nombre, apellido y correo, todos obligatorios en el flujo visual. | Etapa 3 |
 | P-009 | Acceso | Mostrar “vigencia a confirmar”; no prometer acceso ilimitado. | Antes de producción |

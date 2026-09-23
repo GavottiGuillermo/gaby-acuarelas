@@ -1,6 +1,10 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { PaymentService } = require('../src/payments/service');
+const {
+  canApplyAttemptStatus,
+  canApplyOrderStatus
+} = require('../src/payments/postgres-repository');
 
 const orderId = '2b7b14cc-d0c2-4d69-9e9f-35a42dd26f36';
 const attemptId = '718ab4d1-2a64-49ca-a8d2-9d04128d8353';
@@ -218,4 +222,12 @@ test('rechaza firma inválida y diferencias de importe antes de aprobar', async 
     rawBody: Buffer.from('{}')
   }), (error) => error.code === 'payment_reconciliation_failed');
   assert.equal(mismatch.applied.length, 0);
+});
+
+test('impide regresiones de estado y permite una devolución posterior a la aprobación', () => {
+  assert.equal(canApplyAttemptStatus('approved', 'pending'), false);
+  assert.equal(canApplyAttemptStatus('approved', 'refunded'), true);
+  assert.equal(canApplyOrderStatus('pending', 'refunded'), false);
+  assert.equal(canApplyOrderStatus('approved', 'refunded'), true);
+  assert.equal(canApplyOrderStatus('rejected', 'approved'), false);
 });

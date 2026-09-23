@@ -16,6 +16,8 @@ services:
         sync: false
       - key: MERCADOPAGO_WEBHOOK_SECRET
         sync: false
+      - key: MERCADOPAGO_ENV
+        value: sandbox
       - key: PAYPAL_ENV
         value: sandbox
       - key: PAYPAL_CLIENT_ID

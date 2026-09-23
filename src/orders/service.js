@@ -60,11 +60,26 @@ function amountInCents(product) {
   return cents;
 }
 
-function buildOrderRequest({ body, idempotencyKey, catalog }) {
+function paymentProviderFromBody(body) {
   assertPlainObject(body, 'El cuerpo del pedido no es válido.');
-  assertOnlyKeys(body, ['customer', 'items'], 'El pedido');
+  const provider = body.paymentProvider || 'paypal';
+  if (!['paypal', 'mercadopago'].includes(provider)) {
+    throw new OrderError('El proveedor de pago no es válido.');
+  }
+  return provider;
+}
+
+function buildOrderRequest({ body, idempotencyKey, catalog, arsPricing = null }) {
+  assertPlainObject(body, 'El cuerpo del pedido no es válido.');
+  assertOnlyKeys(body, ['customer', 'items', 'paymentProvider'], 'El pedido');
   assertPlainObject(body.customer, 'Los datos del comprador son obligatorios.');
   assertOnlyKeys(body.customer, ['firstName', 'lastName', 'email'], 'El comprador');
+  const paymentProvider = paymentProviderFromBody(body);
+  const currency = paymentProvider === 'mercadopago' ? 'ARS' : 'USD';
+  const arsAmounts = new Map((arsPricing?.products || []).map((item) => [
+    item.productId,
+    Number(item.amount)
+  ]));
 
   if (!Array.isArray(body.items) || body.items.length < 1 || body.items.length > 20) {
     throw new OrderError('El pedido debe contener entre 1 y 20 productos.');
@@ -89,12 +104,20 @@ function buildOrderRequest({ body, idempotencyKey, catalog }) {
     }
 
     seenIds.add(item.productId);
-    const unitAmountCents = amountInCents(product);
+    const unitAmountCents = currency === 'ARS'
+      ? Math.round(Number(arsAmounts.get(product.id)) * 100)
+      : amountInCents(product);
+    if (!Number.isSafeInteger(unitAmountCents) || unitAmountCents <= 0) {
+      throw new OrderError('Los precios ARS no están disponibles para todos los productos.', {
+        code: 'ars_prices_unavailable',
+        status: 503
+      });
+    }
     return {
       productId: product.id,
       productType: product.type,
       title: product.title,
-      currency: 'USD',
+      currency,
       unitAmountCents,
       quantity: 1,
       lineAmountCents: unitAmountCents
@@ -112,13 +135,13 @@ function buildOrderRequest({ body, idempotencyKey, catalog }) {
     .sort((left, right) => left.productId.localeCompare(right.productId));
   const requestFingerprint = crypto
     .createHash('sha256')
-    .update(JSON.stringify({ customer, items: sortedFingerprintItems }))
+    .update(JSON.stringify({ customer, paymentProvider, currency, items: sortedFingerprintItems }))
     .digest('hex');
 
   return {
     id: crypto.randomUUID(),
     customer: { id: crypto.randomUUID(), ...customer },
-    currency: 'USD',
+    currency,
     totalAmountCents: items.reduce((total, item) => total + item.lineAmountCents, 0),
     idempotencyKey: normalizedKey,
     requestFingerprint,
@@ -127,16 +150,29 @@ function buildOrderRequest({ body, idempotencyKey, catalog }) {
 }
 
 class OrderService {
-  constructor({ repository, catalog }) {
+  constructor({ repository, catalog, pricingService = null }) {
     this.repository = repository;
     this.catalog = catalog;
+    this.pricingService = pricingService;
   }
 
   async create({ body, idempotencyKey }) {
+    const paymentProvider = paymentProviderFromBody(body);
+    let arsPricing = null;
+    if (paymentProvider === 'mercadopago') {
+      if (!this.pricingService) {
+        throw new OrderError('Los precios ARS todavía no están disponibles.', {
+          code: 'ars_prices_unavailable',
+          status: 503
+        });
+      }
+      arsPricing = await this.pricingService.getPublicPricing();
+    }
     const request = buildOrderRequest({
       body,
       idempotencyKey,
-      catalog: this.catalog
+      catalog: this.catalog,
+      arsPricing
     });
     return this.repository.create(request);
   }
@@ -154,5 +190,4 @@ class OrderService {
   }
 }
 
-module.exports = { OrderService, buildOrderRequest };
-
+module.exports = { OrderService, buildOrderRequest, paymentProviderFromBody };

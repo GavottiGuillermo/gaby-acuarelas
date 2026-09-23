@@ -12,7 +12,7 @@ Una persona debe poder elegir y pedir uno o más cursos desde la web. Después d
 2. Abre el detalle de un curso, combo o ebook.
 3. Selecciona el producto y comienza el pedido.
 4. Informa nombre, apellido y un correo electrónico válido.
-5. Elige PayPal para USD o Mercado Pago para ARS. La web muestra importes ARS derivados en servidor con redondeo hacia arriba a múltiplos de $100; Mercado Pago permanece deshabilitado hasta completar las pruebas sandbox.
+5. Elige PayPal para USD o Mercado Pago para ARS. La web muestra importes ARS derivados en servidor con redondeo hacia arriba a múltiplos de $100; cada proveedor permanece deshabilitado si faltan sus credenciales Sandbox.
 6. El servidor obtiene producto, moneda e importe desde su propio catálogo y crea una orden `pending`.
 7. El proveedor procesa el pago.
 8. Un webhook firmado comunica el resultado al servidor.
@@ -105,7 +105,7 @@ Para crear una orden, el cliente envía el encabezado `Idempotency-Key` y única
 }
 ```
 
-El servidor rechaza importes, monedas y precios aportados por el navegador. Resuelve cada producto desde el catálogo controlado, fija USD y guarda en la orden una copia inmutable del título, tipo y precio aplicados.
+El servidor rechaza importes, monedas y precios aportados por el navegador. Resuelve cada producto desde el catálogo controlado y guarda en la orden una copia inmutable del título, tipo, moneda y precio aplicados. Si `paymentProvider` es `paypal` o está ausente, crea la orden en USD; si es `mercadopago`, obtiene los importes ARS desde la cotización activa y los congela en la orden.
 
 Repetir el mismo pedido con la misma clave devuelve la orden existente. Reutilizar la clave con otro comprador o productos diferentes responde con conflicto. La respuesta de consulta no incluye nombre ni correo del comprador.
 
@@ -122,6 +122,17 @@ La etapa 4 incorpora tres endpoints de servidor:
 Los importes y productos del pedido PayPal se construyen desde la copia inmutable de la orden. Cualquier campo adicional enviado por el navegador, incluido un precio o moneda, se rechaza. El cuerpo del webhook no se escribe en logs ni se conserva completo: se registra únicamente su hash SHA-256 y los metadatos necesarios para idempotencia y auditoría.
 
 Durante el desarrollo `PAYPAL_ENV` debe ser `sandbox`. La ausencia o configuración parcial de `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET` y `PAYPAL_WEBHOOK_ID` mantiene el checkout cerrado. Las credenciales `Live` siguen prohibidas hasta las etapas productivas.
+
+## Contrato inicial de Mercado Pago Sandbox
+
+La etapa 4 incorpora dos endpoints de servidor:
+
+- `POST /api/checkout/mercadopago` recibe únicamente `{ "orderId": "..." }`, exige una orden ARS persistida, crea un intento idempotente y devuelve exclusivamente el `sandbox_init_point` de una preferencia Checkout Pro.
+- `POST /api/webhooks/mercadopago` valida `x-signature` mediante HMAC SHA-256, consulta el pago y la preferencia a la API de Mercado Pago y sólo entonces aplica una transición idempotente.
+
+La preferencia usa los productos e importes congelados en la orden, `external_reference` con el identificador interno y metadatos para enlazar el intento. La conciliación compara intento, orden, preferencia, productos, moneda e importe. Los parámetros de retorno del navegador sólo inician la consulta del estado interno y nunca aprueban la orden.
+
+Durante la etapa 4 `MERCADOPAGO_ENV` debe ser `sandbox`. Si ambas credenciales están ausentes, el proveedor se anuncia como deshabilitado y sus endpoints responden `503`; una configuración parcial se rechaza al iniciar el servidor. El cuerpo del webhook no se registra: sólo se persisten su hash SHA-256, identificadores y resultado de procesamiento.
 
 ## Casos alternativos
 
