@@ -910,8 +910,9 @@ async function captureMercadoPagoReturn() {
   }
 
   rememberPendingMercadoPagoOrder(orderId);
+  let reconciliation = null;
   try {
-    await requestJson('/api/payments/mercadopago/reconcile', {
+    reconciliation = await requestJson('/api/payments/mercadopago/reconcile', {
       method: 'POST',
       body: JSON.stringify({
         orderId,
@@ -922,6 +923,15 @@ async function captureMercadoPagoReturn() {
     // La orden continúa pendiente y el monitor reintenta sin confiar en el retorno del navegador.
   }
   clearMercadoPagoReturnParameters();
+  if (!mercadoPagoStatus && reconciliation?.payment?.status === 'pending_provider') {
+    forgetPendingMercadoPagoOrder();
+    showFormStatus(
+      'No encontramos un pago asociado en Mercado Pago. No se registró ningún cobro y podés volver a intentarlo.',
+      'warning'
+    );
+    openCart();
+    return;
+  }
   setSubmitting(true);
   try {
     await showPayPalOrderResult(orderId, null, 'mercadopago');
