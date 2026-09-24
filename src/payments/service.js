@@ -153,16 +153,15 @@ function assertReconciledMercadoPagoPreference(preference, attempt) {
   }
 }
 
-function assertReconciledMercadoPagoPayment(payment, paymentId, attempt, eventLiveMode) {
+function assertReconciledMercadoPagoPayment(payment, paymentId, attempt) {
   const identityMatches = String(payment?.id) === paymentId
     && payment?.external_reference === attempt.order.id
     && payment?.metadata?.order_id === attempt.order.id
     && payment?.metadata?.payment_attempt_id === attempt.id;
-  const environmentMatches = typeof payment?.live_mode === 'boolean'
-    && payment.live_mode === eventLiveMode;
+  const environmentIsDeclared = typeof payment?.live_mode === 'boolean';
   const amountMatches = payment?.currency_id === attempt.expectedCurrency
     && numberToCents(payment?.transaction_amount) === attempt.expectedAmountCents;
-  if (!identityMatches || !environmentMatches || !amountMatches) {
+  if (!identityMatches || !environmentIsDeclared || !amountMatches) {
     throw new PaymentError('El pago de Mercado Pago no coincide con referencia, importe o moneda.', {
       code: 'payment_reconciliation_failed',
       status: 409
@@ -455,7 +454,7 @@ class PaymentService {
 
     const preference = await this.mercadoPagoClient.getPreference(attempt.providerReference);
     assertReconciledMercadoPagoPreference(preference, attempt);
-    assertReconciledMercadoPagoPayment(payment, paymentId, attempt, event.live_mode);
+    assertReconciledMercadoPagoPayment(payment, paymentId, attempt);
     const outcome = MERCADOPAGO_STATUS_OUTCOMES[payment.status];
     return this.repository.applyWebhookEvent({
       provider: 'mercadopago',

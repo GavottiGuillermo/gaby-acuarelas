@@ -212,7 +212,7 @@ test('distingue fallos estructurales del webhook sin registrar el cuerpo', async
   }
 });
 
-test('ignora de forma autenticada otros tópicos y acepta el modo informado si coincide con el pago', async () => {
+test('ignora otros tópicos y usa el pago autenticado como autoridad del entorno', async () => {
   const ignored = fixture();
   const merchantOrder = {
     ...event('40001'),
@@ -242,13 +242,26 @@ test('ignora de forma autenticada otros tópicos y acepta el modo informado si c
   assert.equal(processed.processed, true);
   assert.equal(liveFlaggedTest.applied[0].orderStatus, 'approved');
 
-  const inconsistentMode = fixture();
-  const inconsistentEvent = { ...event('40003'), live_mode: true };
-  await assert.rejects(() => inconsistentMode.service.processMercadoPagoWebhook({
+  const simulatorMode = fixture();
+  simulatorMode.mercadoPagoClient.getPayment = async () => payment('approved', { live_mode: true });
+  const simulatorEvent = event('40003');
+  const simulatorResult = await simulatorMode.service.processMercadoPagoWebhook({
     headers: {},
-    event: inconsistentEvent,
-    rawBody: Buffer.from(JSON.stringify(inconsistentEvent)),
+    event: simulatorEvent,
+    rawBody: Buffer.from(JSON.stringify(simulatorEvent)),
+    dataId: paymentId
+  });
+  assert.equal(simulatorResult.processed, true);
+
+  const missingProviderMode = fixture();
+  missingProviderMode.mercadoPagoClient.getPayment = async () => payment('approved', {
+    live_mode: undefined
+  });
+  await assert.rejects(() => missingProviderMode.service.processMercadoPagoWebhook({
+    headers: {},
+    event: event('40004'),
+    rawBody: Buffer.from('{}'),
     dataId: paymentId
   }), (error) => error.code === 'payment_reconciliation_failed');
-  assert.equal(inconsistentMode.applied.length, 0);
+  assert.equal(missingProviderMode.applied.length, 0);
 });
