@@ -442,6 +442,17 @@ function forgetPendingMercadoPagoOrder() {
   }
 }
 
+function forgetOrderIdempotencyKeys() {
+  try {
+    for (let index = sessionStorage.length - 1; index >= 0; index -= 1) {
+      const key = sessionStorage.key(index);
+      if (key?.startsWith('gaby-order:')) sessionStorage.removeItem(key);
+    }
+  } catch {
+    // El próximo intento puede continuar aunque el navegador bloquee el almacenamiento.
+  }
+}
+
 function clearCompletedCart() {
   state.cart.clear();
   checkoutForm.reset();
@@ -449,13 +460,10 @@ function clearCompletedCart() {
 
   try {
     sessionStorage.removeItem('gaby-cart');
-    for (let index = sessionStorage.length - 1; index >= 0; index -= 1) {
-      const key = sessionStorage.key(index);
-      if (key?.startsWith('gaby-order:')) sessionStorage.removeItem(key);
-    }
   } catch {
     // La interfaz queda limpia aunque el navegador bloquee el almacenamiento.
   }
+  forgetOrderIdempotencyKeys();
 
   updateAllAddButtons();
   renderCart();
@@ -583,6 +591,7 @@ function handleTerminalPayPalOrder(order, provider = 'paypal') {
     state.finalizedPayPalOrderId = order.id;
     if (provider === 'mercadopago') forgetPendingMercadoPagoOrder();
     else forgetPendingPayPalOrder();
+    forgetOrderIdempotencyKeys();
     showCartPaymentStatus(status.message, status.tone);
     return true;
   }
@@ -842,6 +851,7 @@ async function capturePayPalReturn() {
   if (paypalStatus === 'cancel') {
     clearPayPalReturnParameters();
     forgetPendingPayPalOrder();
+    forgetOrderIdempotencyKeys();
     showFormStatus(PAYPAL_CANCELLED_MESSAGE, 'warning');
     openCart();
     return;
@@ -901,6 +911,7 @@ async function captureMercadoPagoReturn() {
   if (mercadoPagoStatus === 'failure' && !paymentId) {
     clearMercadoPagoReturnParameters();
     forgetPendingMercadoPagoOrder();
+    forgetOrderIdempotencyKeys();
     showFormStatus(
       'Volviste de Mercado Pago sin completar el pago. No se registró ningún cobro y podés volver a intentarlo.',
       'warning'
@@ -925,6 +936,7 @@ async function captureMercadoPagoReturn() {
   clearMercadoPagoReturnParameters();
   if (!mercadoPagoStatus && reconciliation?.payment?.status === 'pending_provider') {
     forgetPendingMercadoPagoOrder();
+    forgetOrderIdempotencyKeys();
     showFormStatus(
       'No encontramos un pago asociado en Mercado Pago. No se registró ningún cobro y podés volver a intentarlo.',
       'warning'

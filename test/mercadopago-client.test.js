@@ -24,6 +24,7 @@ test('crea una preferencia ARS sólo con la orden interna y usa el punto Sandbox
   const client = new MercadoPagoClient({
     accessToken: 'token-de-prueba',
     webhookSecret: 'firma-de-prueba',
+    now: () => new Date('2026-09-24T12:00:00.000Z'),
     async fetchImpl(url, options) {
       request = { url, options };
       return response({
@@ -57,7 +58,31 @@ test('crea una preferencia ARS sólo con la orden interna y usa el punto Sandbox
   assert.equal(body.items[0].currency_id, 'ARS');
   assert.equal(body.items[0].unit_price, 18500);
   assert.equal(body.notification_url, undefined);
+  assert.equal(body.expires, true);
+  assert.equal(body.expiration_date_from, '2026-09-24T12:00:00.000Z');
+  assert.equal(body.expiration_date_to, '2026-09-24T12:30:00.000Z');
   assert.doesNotMatch(request.options.body, /access_token|webhookSecret/i);
+});
+
+test('permite cerrar de forma autenticada la vigencia de una preferencia anterior', async () => {
+  let request;
+  const client = new MercadoPagoClient({
+    accessToken: 'token-de-prueba',
+    webhookSecret: 'firma-de-prueba',
+    async fetchImpl(url, options) {
+      request = { url, options };
+      return response({ id: '123456789-test-pref' });
+    }
+  });
+  await client.setPreferenceExpiration('123456789-test-pref', {
+    startsAt: new Date('2026-09-24T12:00:00.000Z'),
+    expiresAt: new Date('2026-09-24T12:15:00.000Z')
+  });
+  const body = JSON.parse(request.options.body);
+  assert.equal(request.options.method, 'PUT');
+  assert.equal(request.url, 'https://api.mercadopago.com/checkout/preferences/123456789-test-pref');
+  assert.equal(body.expires, true);
+  assert.equal(body.expiration_date_to, '2026-09-24T12:15:00.000Z');
 });
 
 test('verifica la firma HMAC oficial y rechaza cualquier alteración', () => {

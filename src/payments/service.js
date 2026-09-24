@@ -24,6 +24,16 @@ const MERCADOPAGO_STATUS_OUTCOMES = Object.freeze({
   refunded: { attemptStatus: 'refunded', orderStatus: 'refunded' },
   charged_back: { attemptStatus: 'refunded', orderStatus: 'refunded' }
 });
+const MERCADOPAGO_PENDING_STATUSES = new Set(['pending', 'in_process', 'authorized']);
+
+function preferenceExpirationTime(preference) {
+  const parsed = Date.parse(preference?.expiration_date_to || '');
+  if (preference?.preference_expired === true) {
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  if (preference?.expires !== true || !Number.isFinite(parsed)) return null;
+  return parsed;
+}
 
 function assertOnlyKeys(object, allowedKeys) {
   if (!object || typeof object !== 'object' || Array.isArray(object)) {
@@ -404,6 +414,147 @@ class PaymentService {
     };
   }
 
+  async reconcilePendingMercadoPagoPayments({
+    limit = 50,
+    now = new Date(),
+    graceMs = 15 * 60 * 1000,
+    alertAgeMs = 24 * 60 * 60 * 1000
+  } = {}) {
+    if (!this.mercadoPagoClient || typeof this.repository.listPendingAttempts !== 'function') {
+      throw new PaymentError('La conciliación programada de Mercado Pago no está disponible.', {
+        code: 'payment_reconciliation_unavailable',
+        status: 503
+      });
+    }
+    const nowMs = now instanceof Date ? now.getTime() : Number.NaN;
+    if (!Number.isFinite(nowMs)) {
+      throw new PaymentError('La fecha de conciliación no es válida.', {
+        code: 'invalid_reconciliation_time',
+        status: 500
+      });
+    }
+
+    const attempts = await this.repository.listPendingAttempts('mercadopago', limit);
+    const summary = {
+      scanned: attempts.length,
+      terminalPayments: 0,
+      pendingPayments: 0,
+      noPayment: 0,
+      cancelledExpired: 0,
+      expirationsScheduled: 0,
+      duplicates: 0,
+      failed: 0,
+      overdue: 0,
+      alertRequired: false,
+      errorCodes: {},
+      events: []
+    };
+    const defaultExpirationMs = this.mercadoPagoClient.preferenceExpirationMinutes
+      * 60 * 1000;
+
+    for (const attempt of attempts) {
+      const createdAtMs = new Date(attempt.createdAt).getTime();
+      const ageMs = Number.isFinite(createdAtMs) ? Math.max(0, nowMs - createdAtMs) : 0;
+      if (ageMs >= alertAgeMs) summary.overdue += 1;
+
+      try {
+        const result = await this.reconcileMercadoPagoPayment({ orderId: attempt.order.id });
+        if (result.paymentId) {
+          if (result.duplicate) summary.duplicates += 1;
+          else if (MERCADOPAGO_PENDING_STATUSES.has(result.providerStatus)) {
+            summary.pendingPayments += 1;
+          } else {
+            summary.terminalPayments += 1;
+            if (result.status === 'processed' && ageMs >= alertAgeMs) {
+              summary.overdue -= 1;
+            }
+          }
+          if (!result.duplicate) {
+            summary.events.push({
+              kind: 'payment',
+              orderId: result.orderId,
+              paymentId: result.paymentId,
+              providerStatus: result.providerStatus,
+              processingStatus: result.status
+            });
+          }
+          continue;
+        }
+
+        const preference = await this.mercadoPagoClient.getPreference(
+          attempt.providerReference
+        );
+        assertReconciledMercadoPagoPreference(preference, attempt);
+        const expiresAtMs = preferenceExpirationTime(preference);
+
+        if (expiresAtMs === null) {
+          if (ageMs < defaultExpirationMs) {
+            summary.noPayment += 1;
+            continue;
+          }
+          const startsAt = new Date(nowMs);
+          const expiresAt = new Date(nowMs + graceMs);
+          await this.mercadoPagoClient.setPreferenceExpiration(
+            attempt.providerReference,
+            { startsAt, expiresAt }
+          );
+          summary.expirationsScheduled += 1;
+          summary.events.push({
+            kind: 'expiration_scheduled',
+            orderId: attempt.order.id,
+            preferenceId: attempt.providerReference,
+            expiresAt: expiresAt.toISOString()
+          });
+          continue;
+        }
+
+        if (nowMs < expiresAtMs + graceMs) {
+          summary.noPayment += 1;
+          continue;
+        }
+
+        const expiration = preference.expiration_date_to || 'provider-expired';
+        const providerEventId = `expiration:${attempt.providerReference}:${expiration}`;
+        const payloadSha256 = crypto.createHash('sha256')
+          .update(`${attempt.order.id}:${attempt.id}:${providerEventId}`)
+          .digest('hex');
+        const outcome = await this.repository.applyWebhookEvent({
+          provider: 'mercadopago',
+          providerEventId,
+          eventType: 'preference:expired-without-payment',
+          payloadSha256,
+          attemptId: attempt.id,
+          attemptStatus: 'cancelled',
+          orderStatus: 'cancelled',
+          processingStatus: 'processed'
+        });
+        if (outcome.duplicate) summary.duplicates += 1;
+        else if (outcome.processed) {
+          summary.cancelledExpired += 1;
+          if (ageMs >= alertAgeMs) summary.overdue -= 1;
+        }
+        summary.events.push({
+          kind: 'cancelled_expired',
+          orderId: attempt.order.id,
+          preferenceId: attempt.providerReference,
+          processingStatus: outcome.processingStatus || (outcome.duplicate ? 'duplicate' : 'unknown')
+        });
+      } catch (error) {
+        const code = error?.code || 'unknown';
+        summary.failed += 1;
+        summary.errorCodes[code] = (summary.errorCodes[code] || 0) + 1;
+        summary.events.push({
+          kind: 'failed',
+          orderId: attempt.order.id,
+          code
+        });
+      }
+    }
+
+    summary.alertRequired = summary.failed > 0 || summary.overdue > 0;
+    return summary;
+  }
+
   async processPayPalWebhook({ headers, event, rawBody }) {
     if (!event || typeof event !== 'object' || Array.isArray(event)
         || typeof event.id !== 'string' || typeof event.event_type !== 'string') {
@@ -540,6 +691,7 @@ module.exports = {
   PaymentService,
   PAYPAL_EVENT_OUTCOMES,
   MERCADOPAGO_STATUS_OUTCOMES,
+  preferenceExpirationTime,
   assertReconciledOrder,
   assertReconciledMercadoPagoPreference,
   assertReconciledMercadoPagoPayment,

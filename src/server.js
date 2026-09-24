@@ -11,6 +11,7 @@ const { createPayPalClient } = require('./payments/paypal-client');
 const { createMercadoPagoClient } = require('./payments/mercadopago-client');
 const { PaymentService } = require('./payments/service');
 const { PostgresPaymentRepository } = require('./payments/postgres-repository');
+const { startPaymentReconciliationScheduler } = require('./payments/reconciliation');
 const { PricingService } = require('./pricing/service');
 const { PostgresPricingRepository } = require('./pricing/postgres-repository');
 
@@ -51,13 +52,18 @@ const app = createApp({
   },
   publicDir
 });
+const reconciliationScheduler = paymentService && mercadoPagoClient
+  ? startPaymentReconciliationScheduler({ paymentService })
+  : null;
 
 const server = app.listen(port, '0.0.0.0', () => {
   console.log(`Gaby Acuarelas disponible en http://localhost:${port}`);
+  reconciliationScheduler?.start();
 });
 
 async function shutdown(signal) {
   console.log(`Cierre solicitado: ${signal}`);
+  reconciliationScheduler?.stop();
   server.close(async () => {
     if (pool) await pool.end();
     process.exit(0);

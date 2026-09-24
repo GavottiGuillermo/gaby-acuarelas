@@ -136,6 +136,7 @@
 - El backend usa la API de Preferencias de Checkout Pro y redirige únicamente al `sandbox_init_point`.
 - La orden ARS se crea antes que la preferencia y conserva los importes calculados por el servidor; el navegador nunca envía precios ni moneda.
 - El retorno del navegador no confirma el pago. Un webhook con firma HMAC válida o una conciliación activa iniciada por el retorno pueden consultar de forma autenticada el pago y la preferencia; sólo esa respuesta del proveedor, conciliada contra orden, intento, productos, moneda e importe, puede cambiar el estado interno.
+- Cada preferencia Sandbox nueva vence inicialmente a los 30 minutos. Un conciliador del servidor se ejecuta al iniciar y cada 5 minutos: conserva pagos reales pendientes, cierra abandonos sólo después del vencimiento autenticado y 15 minutos de margen, y alerta por intentos con más de 24 horas. Estos valores son configurables y deben revisarse antes de producción según los medios de pago habilitados.
 - La integración permanece cerrada sin credenciales; una configuración parcial o un `MERCADOPAGO_ENV` distinto de `sandbox` impiden iniciar el servicio para evitar una habilitación insegura.
 
 ## Asuntos abiertos

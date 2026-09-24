@@ -190,6 +190,57 @@ test('concilia activamente el retorno consultando el pago autenticado', async ()
   }), (error) => error.code === 'invalid_mercadopago_payment_id');
 });
 
+test('cancela en forma idempotente una preferencia vencida sin ningún pago', async () => {
+  const current = fixture();
+  current.attempt.createdAt = new Date('2026-09-24T10:00:00.000Z');
+  current.repository.listPendingAttempts = async () => [current.attempt];
+  current.mercadoPagoClient.preferenceExpirationMinutes = 30;
+  current.mercadoPagoClient.searchPaymentsByExternalReference = async () => [];
+  current.mercadoPagoClient.getPreference = async () => ({
+    ...preference(current.attempt),
+    expires: true,
+    expiration_date_to: '2026-09-24T10:30:00.000Z'
+  });
+
+  const result = await current.service.reconcilePendingMercadoPagoPayments({
+    now: new Date('2026-09-24T11:00:00.000Z'),
+    graceMs: 15 * 60 * 1000,
+    alertAgeMs: 30 * 60 * 1000
+  });
+
+  assert.equal(result.scanned, 1);
+  assert.equal(result.cancelledExpired, 1);
+  assert.equal(result.failed, 0);
+  assert.equal(result.overdue, 0);
+  assert.equal(result.alertRequired, false);
+  assert.equal(current.applied[0].attemptStatus, 'cancelled');
+  assert.equal(current.applied[0].orderStatus, 'cancelled');
+  assert.equal(current.applied[0].eventType, 'preference:expired-without-payment');
+});
+
+test('programa el vencimiento de preferencias anteriores antes de cancelarlas', async () => {
+  const current = fixture();
+  current.attempt.createdAt = new Date('2026-09-24T10:00:00.000Z');
+  current.repository.listPendingAttempts = async () => [current.attempt];
+  current.mercadoPagoClient.preferenceExpirationMinutes = 30;
+  current.mercadoPagoClient.searchPaymentsByExternalReference = async () => [];
+  let expiration;
+  current.mercadoPagoClient.setPreferenceExpiration = async (_preferenceId, value) => {
+    expiration = value;
+  };
+
+  const result = await current.service.reconcilePendingMercadoPagoPayments({
+    now: new Date('2026-09-24T11:00:00.000Z'),
+    graceMs: 15 * 60 * 1000
+  });
+
+  assert.equal(result.expirationsScheduled, 1);
+  assert.equal(result.cancelledExpired, 0);
+  assert.equal(expiration.startsAt.toISOString(), '2026-09-24T11:00:00.000Z');
+  assert.equal(expiration.expiresAt.toISOString(), '2026-09-24T11:15:00.000Z');
+  assert.equal(current.applied.length, 0);
+});
+
 test('traduce estados y no aprueba con firma o importe inválidos', async () => {
   for (const [providerStatus, attemptStatus, orderStatus] of [
     ['pending', 'pending', null],

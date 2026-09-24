@@ -17,12 +17,12 @@ La maqueta preliminar incluye:
 - catálogo real de 40 clases compatible con GitHub Pages y reutilizado por Express;
 - ebook `10 Acuarelas Botánicas - Paso a paso` a USD 5;
 - precios visibles en USD y ARS, con conversión administrada y redondeo a múltiplos de $100, y carrito para armar combos libres;
-- flujo de PayPal Sandbox en USD e integración preparada de Mercado Pago Checkout Pro Sandbox en ARS;
+- flujo de PayPal Sandbox en USD y Mercado Pago Checkout Pro Sandbox en ARS, con conciliación automática de pendientes;
 - enlaces a recursos gratuitos que Gaby ya comparte con su comunidad;
 - variables preparadas para pagos, correo y Dropbox;
 - configuración inicial para Render y publicación automática en GitHub Pages.
 
-Los nombres, niveles y precios provienen del catálogo aportado, salvo las decisiones provisionales identificadas en `docs/ai/DEFERRED_DECISIONS.md`. La versión de GitHub Pages es únicamente visual y no procesa pagos. El backend de PayPal Sandbox crea, captura y concilia órdenes. Mercado Pago ya cuenta con órdenes ARS, preferencias de Checkout Pro y webhooks conciliados, pero permanece deshabilitado hasta configurar y probar sus credenciales Sandbox.
+Los nombres, niveles y precios provienen del catálogo aportado, salvo las decisiones provisionales identificadas en `docs/ai/DEFERRED_DECISIONS.md`. La versión de GitHub Pages es únicamente visual y no procesa pagos. El backend de PayPal Sandbox crea, captura y concilia órdenes. Mercado Pago crea preferencias ARS con vigencia limitada, procesa webhooks firmados y reconcilia periódicamente estados pendientes consultando su API autenticada.
 
 El catálogo real recibido está transcripto en `docs/ai/COURSE_CATALOG.md` y `docs/ai/course-catalog.json`, y alimenta la demo estática. Las imágenes de las láminas, el precio especial y la promoción sin descuento son provisionales.
 
@@ -42,6 +42,7 @@ Sin `DATABASE_URL`, la tienda estática sigue disponible y la API de órdenes re
 
 ```bash
 npm run db:migrate
+npm run payments:reconcile
 npm test
 ```
 
@@ -59,8 +60,8 @@ Todos los recursos usan rutas relativas, por lo que la demo funciona aunque GitH
 ## Próximas integraciones
 
 1. Revisar la demo estática con Gaby y ajustar las decisiones provisionales.
-2. Completar las pruebas reales de Mercado Pago Sandbox con credenciales de prueba.
-3. Validar las notificaciones firmadas de ambos proveedores contra sus simuladores y flujos Sandbox.
+2. Completar los casos rechazado, pendiente y cancelado de Mercado Pago y PayPal Sandbox.
+3. Validar la conciliación automática y las notificaciones firmadas de ambos proveedores.
 4. Registrar cada compra aprobada en PostgreSQL.
 5. Enviar el correo transaccional una única vez.
 6. Generar o entregar el acceso de Dropbox sin exponer credenciales.

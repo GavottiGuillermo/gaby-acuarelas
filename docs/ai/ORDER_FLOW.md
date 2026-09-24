@@ -133,6 +133,10 @@ La etapa 4 incorpora dos endpoints de servidor:
 
 La preferencia usa los productos e importes congelados en la orden, `external_reference` con el identificador interno y metadatos para enlazar el intento. La conciliación compara intento, orden, preferencia, productos, moneda e importe. Los parámetros de retorno del navegador sólo pueden iniciar una consulta autenticada al proveedor; sus estados e importes nunca se aceptan como evidencia de pago.
 
+Las preferencias nuevas tienen vigencia limitada. El servidor concilia periódicamente todos los intentos Mercado Pago pendientes: si encuentra un pago, aplica de forma idempotente el estado autenticado; si existe un pago pendiente, conserva la orden pendiente; y si no existe ningún pago, sólo cancela después de verificar que la preferencia venció y transcurrió el margen de seguridad. Las preferencias anteriores sin vigencia reciben primero un vencimiento autenticado y nunca se cancelan en la misma ejecución.
+
+Un abandono o estado terminal limpia la clave idempotente del navegador para que el comprador pueda crear una orden y preferencia nuevas al reintentar. Esto no modifica por sí mismo la orden anterior: su cierre depende del conciliador del servidor.
+
 Durante la etapa 4 `MERCADOPAGO_ENV` debe ser `sandbox`. Si ambas credenciales están ausentes, el proveedor se anuncia como deshabilitado y sus endpoints responden `503`; una configuración parcial se rechaza al iniciar el servidor. El cuerpo del webhook no se registra: sólo se persisten su hash SHA-256, identificadores y resultado de procesamiento.
 
 ## Casos alternativos

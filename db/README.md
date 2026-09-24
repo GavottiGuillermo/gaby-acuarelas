@@ -36,6 +36,7 @@ npm run db:create-app-role
 npm run db:verify-app
 npm run db:rollback
 npm run rate:update
+npm run payments:reconcile
 ```
 
 `db:check-readiness` sólo consulta versión, conexiones, tamaño, TLS, permisos y existencia del esquema. El runner de migraciones usa una transacción y un bloqueo asesor para evitar dos ejecuciones simultáneas. El rollback revierte solamente la última migración registrada.
@@ -89,3 +90,11 @@ COMMIT;
 ```
 
 La aplicación usa esta tabla para calcular los precios ARS y congelarlos en cada orden Mercado Pago. La fórmula aprobada usa la cotización de venta sin margen y redondea cada producto hacia arriba al siguiente múltiplo de $100. Una orden ya creada no cambia cuando se actualiza la cotización.
+
+## Conciliación de pagos Mercado Pago
+
+El servidor ejecuta una conciliación al iniciar y luego con el intervalo definido por `PAYMENT_RECONCILIATION_INTERVAL_MINUTES`. También puede ejecutarse una sola vez con `npm run payments:reconcile`, usando el rol limitado de la aplicación.
+
+Cada preferencia nueva tiene una vigencia configurada por `MERCADOPAGO_PREFERENCE_EXPIRATION_MINUTES`. El conciliador busca intentos pendientes, consulta pagos y preferencias con el Access Token, aplica estados mediante el mismo registro idempotente de eventos y sólo cancela una orden sin pago cuando la preferencia autenticada está vencida y terminó el margen adicional. Las preferencias antiguas sin vencimiento reciben primero una fecha de cierre y se vuelven a comprobar en ejecuciones posteriores.
+
+Un pago real `pending`, `in_process` o `authorized` permanece pendiente aunque venza la preferencia, porque el pago ya existe y todavía puede resolverse. Los lotes con fallos o intentos que superan `PAYMENT_RECONCILIATION_ALERT_HOURS` generan una alerta segura en logs; el correo administrativo continúa diferido hasta habilitar el servidor de correo en la etapa 5.

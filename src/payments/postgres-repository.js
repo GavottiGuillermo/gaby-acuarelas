@@ -189,7 +189,7 @@ class PostgresPaymentRepository {
 
   async findAttemptById(provider, attemptId) {
     const result = await this.pool.query(`
-      SELECT pa.id, pa.provider, pa.provider_reference, pa.status,
+      SELECT pa.id, pa.provider, pa.provider_reference, pa.status, pa.created_at,
              pa.expected_currency, pa.expected_amount_cents,
              o.id AS order_id, o.status AS order_status,
              o.currency, o.total_amount_cents
@@ -205,6 +205,7 @@ class PostgresPaymentRepository {
       provider: row.provider,
       providerReference: row.provider_reference,
       status: row.status,
+      createdAt: row.created_at,
       expectedCurrency: row.expected_currency,
       expectedAmountCents: row.expected_amount_cents,
       order: mapOrder({
@@ -214,6 +215,45 @@ class PostgresPaymentRepository {
         total_amount_cents: row.total_amount_cents
       }, itemRows)
     };
+  }
+
+  async listPendingAttempts(provider, limit = 50) {
+    const safeLimit = Number.isInteger(limit) && limit > 0 && limit <= 200 ? limit : 50;
+    const result = await this.pool.query(`
+      SELECT pa.id, pa.provider, pa.provider_reference, pa.status, pa.created_at,
+             pa.expected_currency, pa.expected_amount_cents,
+             o.id AS order_id, o.status AS order_status,
+             o.currency, o.total_amount_cents
+      FROM gaby_acuarelas.payment_attempts pa
+      JOIN gaby_acuarelas.orders o ON o.id = pa.order_id
+      WHERE pa.provider = $1
+        AND pa.status = 'pending'
+        AND pa.provider_reference IS NOT NULL
+        AND o.status = 'pending'
+      ORDER BY pa.created_at, pa.id
+      LIMIT $2
+    `, [provider, safeLimit]);
+
+    const attempts = [];
+    for (const row of result.rows) {
+      const itemRows = await loadItems(this.pool, row.order_id);
+      attempts.push({
+        id: row.id,
+        provider: row.provider,
+        providerReference: row.provider_reference,
+        status: row.status,
+        createdAt: row.created_at,
+        expectedCurrency: row.expected_currency,
+        expectedAmountCents: row.expected_amount_cents,
+        order: mapOrder({
+          id: row.order_id,
+          order_status: row.order_status,
+          currency: row.currency,
+          total_amount_cents: row.total_amount_cents
+        }, itemRows)
+      });
+    }
+    return attempts;
   }
 
   async hasEvent(provider, providerEventId) {

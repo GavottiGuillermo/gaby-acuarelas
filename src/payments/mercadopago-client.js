@@ -3,6 +3,12 @@ const { PaymentError } = require('./errors');
 
 const API_BASE_URL = 'https://api.mercadopago.com';
 const REQUEST_TIMEOUT_MS = 10000;
+const DEFAULT_PREFERENCE_EXPIRATION_MINUTES = 30;
+
+function boundedInteger(value, fallback, minimum, maximum) {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed >= minimum && parsed <= maximum ? parsed : fallback;
+}
 
 function centsToAmount(cents) {
   if (!Number.isSafeInteger(cents) || cents <= 0) {
@@ -38,10 +44,23 @@ function verifyWebhookSignature({ xSignature, xRequestId, dataId, secret }) {
 }
 
 class MercadoPagoClient {
-  constructor({ accessToken, webhookSecret, fetchImpl = fetch }) {
+  constructor({
+    accessToken,
+    webhookSecret,
+    fetchImpl = fetch,
+    preferenceExpirationMinutes = DEFAULT_PREFERENCE_EXPIRATION_MINUTES,
+    now = () => new Date()
+  }) {
     this.accessToken = accessToken;
     this.webhookSecret = webhookSecret;
     this.fetch = fetchImpl;
+    this.preferenceExpirationMinutes = boundedInteger(
+      preferenceExpirationMinutes,
+      DEFAULT_PREFERENCE_EXPIRATION_MINUTES,
+      5,
+      1440
+    );
+    this.now = now;
   }
 
   async fetchJson(path, options = {}) {
@@ -88,6 +107,10 @@ class MercadoPagoClient {
   }
 
   async createPreference({ order, attemptId, returnBaseUrl }) {
+    const startsAt = this.now();
+    const expiresAt = new Date(
+      startsAt.getTime() + this.preferenceExpirationMinutes * 60 * 1000
+    );
     const items = order.items.map((item) => ({
       id: item.productId.slice(0, 256),
       title: item.title.slice(0, 256),
@@ -114,7 +137,10 @@ class MercadoPagoClient {
           failure: `${returnBaseUrl}/?mercadopago=failure&orderId=${order.id}`
         },
         auto_return: 'approved',
-        binary_mode: false
+        binary_mode: false,
+        expires: true,
+        expiration_date_from: startsAt.toISOString(),
+        expiration_date_to: expiresAt.toISOString()
       })
     });
     if (typeof payload.id !== 'string' || !payload.id
@@ -132,6 +158,18 @@ class MercadoPagoClient {
 
   async getPreference(preferenceId) {
     return this.fetchJson(`/checkout/preferences/${encodeURIComponent(preferenceId)}`);
+  }
+
+  async setPreferenceExpiration(preferenceId, { startsAt, expiresAt }) {
+    return this.fetchJson(`/checkout/preferences/${encodeURIComponent(preferenceId)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        expires: true,
+        expiration_date_from: startsAt.toISOString(),
+        expiration_date_to: expiresAt.toISOString()
+      })
+    });
   }
 
   async getPayment(paymentId) {
@@ -172,6 +210,12 @@ function createMercadoPagoClient(env = process.env, options = {}) {
   return new MercadoPagoClient({
     accessToken: env.MERCADOPAGO_ACCESS_TOKEN,
     webhookSecret: env.MERCADOPAGO_WEBHOOK_SECRET,
+    preferenceExpirationMinutes: boundedInteger(
+      env.MERCADOPAGO_PREFERENCE_EXPIRATION_MINUTES,
+      DEFAULT_PREFERENCE_EXPIRATION_MINUTES,
+      5,
+      1440
+    ),
     ...options
   });
 }
@@ -179,6 +223,7 @@ function createMercadoPagoClient(env = process.env, options = {}) {
 module.exports = {
   MercadoPagoClient,
   createMercadoPagoClient,
+  DEFAULT_PREFERENCE_EXPIRATION_MINUTES,
   centsToAmount,
   parseSignatureHeader,
   verifyWebhookSignature
