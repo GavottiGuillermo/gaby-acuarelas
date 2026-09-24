@@ -543,7 +543,9 @@ function showPurchaseSuccess(order, provider = 'paypal') {
   purchaseSuccessDialog.dataset.state = 'success';
   purchaseSuccessDialog.setAttribute('aria-labelledby', 'purchase-success-title');
   purchaseSuccessDialog.setAttribute('aria-describedby', 'purchase-success-description');
-  purchaseSuccessDescription.textContent = `${provider === 'mercadopago' ? 'Mercado Pago' : 'PayPal'} confirmó tu pago Sandbox mediante su webhook firmado.`;
+  purchaseSuccessDescription.textContent = provider === 'mercadopago'
+    ? 'Mercado Pago confirmó tu pago Sandbox mediante una verificación segura con el proveedor.'
+    : 'PayPal confirmó tu pago Sandbox mediante su webhook firmado.';
   purchaseProcessingView.hidden = true;
   purchaseSuccessView.hidden = false;
   clearCompletedCart();

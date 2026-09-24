@@ -74,6 +74,14 @@ test('publica precios ARS calculados por el servidor sin caché', async () => {
 });
 
 test('crea una orden validada y devuelve 201 sin aceptar precios del navegador', async () => {
+  const logs = [];
+  const logger = {
+    info(message, metadata) {
+      logs.push(['info', message, metadata]);
+    },
+    warn() {},
+    error() {}
+  };
   const repository = {
     async create(request) {
       return {
@@ -90,7 +98,7 @@ test('crea una orden validada y devuelve 201 sin aceptar precios del navegador',
     }
   };
   const orderService = new OrderService({ repository, catalog });
-  const app = createApp({ catalog, orderService, publicDir });
+  const app = createApp({ catalog, orderService, publicDir, logger });
 
   await withServer(app, async (baseUrl) => {
     const response = await fetch(`${baseUrl}/api/orders`, {
@@ -109,6 +117,18 @@ test('crea una orden validada y devuelve 201 sin aceptar precios del navegador',
     assert.equal(response.status, 201);
     assert.equal(payload.order.currency, 'USD');
     assert.equal(payload.order.totalAmountCents, 500);
+    assert.deepEqual(logs, [[
+      'info',
+      'order_created',
+      {
+        orderId: payload.order.id,
+        orderStatus: 'pending',
+        currency: 'USD',
+        itemCount: 1,
+        replayed: false
+      }
+    ]]);
+    assert.doesNotMatch(JSON.stringify(logs), /ana@example|firstName|lastName|customer/i);
 
     repository.findById = async () => ({ ...payload.order, status: 'approved' });
     const statusResponse = await fetch(`${baseUrl}/api/orders/${payload.order.id}`);
@@ -195,24 +215,56 @@ test('expone checkout, captura y webhook PayPal sólo mediante el servicio confi
     });
     assert.equal(webhookResponse.status, 200);
     assert.equal(calls[2][2], webhookBody);
-    assert.deepEqual(logs, [[
-      'info',
-      'paypal_webhook_processed',
-      {
-        eventId: 'WH-1',
-        eventType: 'PAYMENT.CAPTURE.COMPLETED',
-        duplicate: false,
-        processed: true,
-        processingStatus: 'processed'
-      }
-    ]]);
-    assert.doesNotMatch(JSON.stringify(logs), /rawBody|headers|transmission/i);
+    assert.deepEqual(logs, [
+      [
+        'info',
+        'paypal_checkout_created',
+        {
+          orderId: '2b7b14cc-d0c2-4d69-9e9f-35a42dd26f36',
+          providerOrderId: 'PAYPAL123',
+          replayed: false
+        }
+      ],
+      [
+        'info',
+        'paypal_capture_processed',
+        {
+          orderId: '2b7b14cc-d0c2-4d69-9e9f-35a42dd26f36',
+          providerOrderId: 'PAYPAL123',
+          providerStatus: 'unknown',
+          processingStatus: 'pending_webhook'
+        }
+      ],
+      [
+        'info',
+        'paypal_webhook_processed',
+        {
+          eventId: 'WH-1',
+          eventType: 'PAYMENT.CAPTURE.COMPLETED',
+          duplicate: false,
+          processed: true,
+          processingStatus: 'processed'
+        }
+      ]
+    ]);
+    assert.doesNotMatch(JSON.stringify(logs), /rawBody|headers|transmission|customer|email/i);
   });
 });
 
 test('expone preferencia y webhook Mercado Pago sólo cuando Sandbox está configurado', async () => {
   const calls = [];
-  const logger = { info() {}, warn() {}, error() {} };
+  const logs = [];
+  const logger = {
+    info(message, metadata) {
+      logs.push(['info', message, metadata]);
+    },
+    warn(message, metadata) {
+      logs.push(['warn', message, metadata]);
+    },
+    error(message, metadata) {
+      logs.push(['error', message, metadata]);
+    }
+  };
   const paymentService = {
     async createMercadoPagoCheckout(body) {
       calls.push(['checkout', body]);
@@ -272,5 +324,40 @@ test('expone preferencia y webhook Mercado Pago sólo cuando Sandbox está confi
     assert.equal(calls[1][0], 'reconcile');
     assert.equal(calls[2][2], webhookBody);
     assert.equal(calls[2][3], '987654321');
+    assert.deepEqual(logs, [
+      [
+        'info',
+        'mercadopago_checkout_created',
+        {
+          orderId: '2b7b14cc-d0c2-4d69-9e9f-35a42dd26f36',
+          preferenceId: '123-test-pref',
+          replayed: false
+        }
+      ],
+      [
+        'info',
+        'mercadopago_reconciliation_processed',
+        {
+          orderId: '2b7b14cc-d0c2-4d69-9e9f-35a42dd26f36',
+          paymentId: '987654321',
+          providerStatus: 'not_found',
+          processingStatus: 'processed',
+          processed: true,
+          duplicate: false
+        }
+      ],
+      [
+        'info',
+        'mercadopago_webhook_processed',
+        {
+          eventId: '10001',
+          eventType: 'payment.updated',
+          duplicate: false,
+          processed: true,
+          processingStatus: 'processed'
+        }
+      ]
+    ]);
+    assert.doesNotMatch(JSON.stringify(logs), /rawBody|headers|signature|secret|customer|email/i);
   });
 });

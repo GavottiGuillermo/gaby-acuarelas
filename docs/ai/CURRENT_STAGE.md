@@ -126,6 +126,10 @@ Integrar Mercado Pago y PayPal exclusivamente en ambientes sandbox, manteniendo 
 - La misma notificación `123456` se envió dos veces y ambas solicitudes respondieron HTTP 200. PostgreSQL conservó exactamente un evento `processed`, un intento Mercado Pago `approved` y una sola orden `approved`, confirmando idempotencia sin duplicar efectos.
 - Las credenciales se obtuvieron de la pestaña Prueba de Mercado Pago y permanecen en variables privadas de Render. Los logs registraron sólo códigos seguros durante el diagnóstico y no expusieron cuerpos, firmas, credenciales ni datos personales.
 - `npm run check` aprobó los ajustes de webhooks con 48 pruebas automatizadas (47 aprobadas y la prueba PostgreSQL opcional omitida por no estar configurada `TEST_DATABASE_URL`), compuerta de etapa y catálogo el 2026-09-24.
+- Ante la ausencia de una notificación del proveedor, el retorno Mercado Pago puede iniciar una conciliación activa: el servidor busca el pago por la referencia interna, consulta pago y preferencia con el Access Token y aplica las mismas validaciones de intento, orden, metadatos, productos, moneda, importe y estado que el webhook. El navegador no aporta ni decide el resultado del pago.
+- Una compra Mercado Pago Sandbox posterior quedó `approved` mediante esa conciliación autenticada y la interfaz mostró el resumen inmutable de la orden. El texto visible ya no atribuye exclusivamente la confirmación a un webhook cuando provino de esta verificación segura.
+- Se agregaron trazas operativas estructuradas para creación de orden, inicio de checkout, captura PayPal y conciliación Mercado Pago. Registran solamente identificadores técnicos, estado, moneda, cantidad de productos e idempotencia; no incluyen comprador, correo, cuerpos, encabezados, firmas ni credenciales. Las consultas periódicas de estado no se registran para evitar ruido.
+- `npm run check` aprobó la instrumentación con 50 pruebas automatizadas (49 aprobadas y la prueba PostgreSQL opcional omitida por no estar configurada `TEST_DATABASE_URL`), compuerta de etapa y catálogo el 2026-09-24.
 
 ## Regla para cerrar esta etapa
 

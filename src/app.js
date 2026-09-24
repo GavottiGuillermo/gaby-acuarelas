@@ -172,6 +172,13 @@ function createApp({
         body: req.body,
         idempotencyKey: req.get('Idempotency-Key')
       });
+      logger.info('order_created', {
+        orderId: order.id,
+        orderStatus: order.status,
+        currency: order.currency,
+        itemCount: Array.isArray(order.items) ? order.items.length : 0,
+        replayed: Boolean(order.replayed)
+      });
       return res.status(order.replayed ? 200 : 201).json({ order });
     } catch (error) {
       return next(error);
@@ -204,6 +211,11 @@ function createApp({
     }
     try {
       const checkout = await paymentService.createPayPalCheckout(req.body);
+      logger.info('paypal_checkout_created', {
+        orderId: checkout.orderId,
+        providerOrderId: checkout.providerOrderId,
+        replayed: Boolean(checkout.replayed)
+      });
       return res.status(checkout.replayed ? 200 : 201).json({ checkout });
     } catch (error) {
       return next(error);
@@ -219,6 +231,12 @@ function createApp({
     }
     try {
       const payment = await paymentService.capturePayPalOrder(req.body);
+      logger.info('paypal_capture_processed', {
+        orderId: payment.orderId,
+        providerOrderId: payment.providerOrderId,
+        providerStatus: payment.providerStatus || 'unknown',
+        processingStatus: payment.status || 'unknown'
+      });
       return res.status(202).json({ payment });
     } catch (error) {
       return next(error);
@@ -234,6 +252,11 @@ function createApp({
     }
     try {
       const checkout = await paymentService.createMercadoPagoCheckout(req.body);
+      logger.info('mercadopago_checkout_created', {
+        orderId: checkout.orderId,
+        preferenceId: checkout.preferenceId,
+        replayed: Boolean(checkout.replayed)
+      });
       return res.status(checkout.replayed ? 200 : 201).json({ checkout });
     } catch (error) {
       return next(error);
@@ -249,8 +272,20 @@ function createApp({
     }
     try {
       const payment = await paymentService.reconcileMercadoPagoPayment(req.body);
+      logger.info('mercadopago_reconciliation_processed', {
+        orderId: payment.orderId,
+        paymentId: payment.paymentId || null,
+        providerStatus: payment.providerStatus || 'not_found',
+        processingStatus: payment.status || 'unknown',
+        processed: Boolean(payment.processed),
+        duplicate: Boolean(payment.duplicate)
+      });
       return res.status(payment.status === 'pending_provider' ? 202 : 200).json({ payment });
     } catch (error) {
+      logger.warn('mercadopago_reconciliation_rejected', {
+        orderId: typeof req.body?.orderId === 'string' ? req.body.orderId : '',
+        code: error?.code || 'unknown'
+      });
       return next(error);
     }
   });
