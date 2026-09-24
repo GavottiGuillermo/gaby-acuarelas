@@ -226,6 +226,10 @@ test('expone preferencia y webhook Mercado Pago sólo cuando Sandbox está confi
     async processMercadoPagoWebhook({ event, rawBody, dataId }) {
       calls.push(['webhook', event, rawBody.toString('utf8'), dataId]);
       return { duplicate: false, processed: true, processingStatus: 'processed' };
+    },
+    async reconcileMercadoPagoPayment(body) {
+      calls.push(['reconcile', body]);
+      return { ...body, status: 'processed', processed: true };
     }
   };
   const app = createApp({
@@ -246,6 +250,16 @@ test('expone preferencia y webhook Mercado Pago sólo cuando Sandbox está confi
     });
     assert.equal(checkoutResponse.status, 201);
 
+    const reconcileResponse = await fetch(`${baseUrl}/api/payments/mercadopago/reconcile`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        orderId: '2b7b14cc-d0c2-4d69-9e9f-35a42dd26f36',
+        paymentId: '987654321'
+      })
+    });
+    assert.equal(reconcileResponse.status, 200);
+
     const webhookBody = JSON.stringify({
       id: '10001', live_mode: false, type: 'payment', action: 'payment.updated', data: { id: '987654321' }
     });
@@ -255,7 +269,8 @@ test('expone preferencia y webhook Mercado Pago sólo cuando Sandbox está confi
       body: webhookBody
     });
     assert.equal(webhookResponse.status, 200);
-    assert.equal(calls[1][2], webhookBody);
-    assert.equal(calls[1][3], '987654321');
+    assert.equal(calls[1][0], 'reconcile');
+    assert.equal(calls[2][2], webhookBody);
+    assert.equal(calls[2][3], '987654321');
   });
 });

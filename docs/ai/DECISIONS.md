@@ -135,7 +135,7 @@
 - Estado: integración Sandbox activa y validada con una compra aprobada e idempotencia de webhook el 2026-09-24; restan los escenarios pendiente, rechazado y cancelado para cerrar la etapa 4.
 - El backend usa la API de Preferencias de Checkout Pro y redirige únicamente al `sandbox_init_point`.
 - La orden ARS se crea antes que la preferencia y conserva los importes calculados por el servidor; el navegador nunca envía precios ni moneda.
-- El retorno del navegador no confirma el pago. Sólo un webhook con firma HMAC válida, seguido de consultas autenticadas del pago y la preferencia, puede cambiar el estado interno.
+- El retorno del navegador no confirma el pago. Un webhook con firma HMAC válida o una conciliación activa iniciada por el retorno pueden consultar de forma autenticada el pago y la preferencia; sólo esa respuesta del proveedor, conciliada contra orden, intento, productos, moneda e importe, puede cambiar el estado interno.
 - La integración permanece cerrada sin credenciales; una configuración parcial o un `MERCADOPAGO_ENV` distinto de `sandbox` impiden iniciar el servicio para evitar una habilitación insegura.
 
 ## Asuntos abiertos

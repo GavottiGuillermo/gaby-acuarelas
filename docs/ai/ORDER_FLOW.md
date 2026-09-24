@@ -129,8 +129,9 @@ La etapa 4 incorpora dos endpoints de servidor:
 
 - `POST /api/checkout/mercadopago` recibe únicamente `{ "orderId": "..." }`, exige una orden ARS persistida, crea un intento idempotente y devuelve exclusivamente el `sandbox_init_point` de una preferencia Checkout Pro.
 - `POST /api/webhooks/mercadopago` valida `x-signature` mediante HMAC SHA-256, consulta el pago y la preferencia a la API de Mercado Pago y sólo entonces aplica una transición idempotente.
+- `POST /api/payments/mercadopago/reconcile` permite recuperar una notificación demorada o ausente: recibe solamente la orden interna y, opcionalmente, el identificador de pago del retorno; consulta Mercado Pago con el Access Token y aplica las mismas conciliaciones antes de modificar estados.
 
-La preferencia usa los productos e importes congelados en la orden, `external_reference` con el identificador interno y metadatos para enlazar el intento. La conciliación compara intento, orden, preferencia, productos, moneda e importe. Los parámetros de retorno del navegador sólo inician la consulta del estado interno y nunca aprueban la orden.
+La preferencia usa los productos e importes congelados en la orden, `external_reference` con el identificador interno y metadatos para enlazar el intento. La conciliación compara intento, orden, preferencia, productos, moneda e importe. Los parámetros de retorno del navegador sólo pueden iniciar una consulta autenticada al proveedor; sus estados e importes nunca se aceptan como evidencia de pago.
 
 Durante la etapa 4 `MERCADOPAGO_ENV` debe ser `sandbox`. Si ambas credenciales están ausentes, el proveedor se anuncia como deshabilitado y sus endpoints responden `503`; una configuración parcial se rechaza al iniciar el servidor. El cuerpo del webhook no se registra: sólo se persisten su hash SHA-256, identificadores y resultado de procesamiento.
 

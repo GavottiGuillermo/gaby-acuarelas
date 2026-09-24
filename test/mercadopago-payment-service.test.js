@@ -110,6 +110,9 @@ function fixture() {
     async getPayment() {
       return payment();
     },
+    async searchPaymentsByExternalReference() {
+      return [payment()];
+    },
     verifyWebhook() {
       return true;
     }
@@ -156,6 +159,31 @@ test('aprueba sólo un webhook firmado y completamente conciliado', async () => 
   assert.equal(applied[0].attemptStatus, 'approved');
   assert.equal(applied[0].orderStatus, 'approved');
   assert.match(applied[0].payloadSha256, /^[0-9a-f]{64}$/);
+});
+
+test('concilia activamente el retorno consultando el pago autenticado', async () => {
+  const direct = fixture();
+  const directResult = await direct.service.reconcileMercadoPagoPayment({
+    orderId,
+    paymentId
+  });
+  assert.equal(directResult.processed, true);
+  assert.equal(directResult.providerStatus, 'approved');
+  assert.equal(direct.applied[0].orderStatus, 'approved');
+
+  const recovered = fixture();
+  recovered.mercadoPagoClient.getPayment = async () => payment('pending');
+  const recoveredResult = await recovered.service.reconcileMercadoPagoPayment({ orderId });
+  assert.equal(recoveredResult.processed, true);
+  assert.equal(recoveredResult.providerStatus, 'pending');
+  assert.equal(recovered.applied[0].attemptStatus, 'pending');
+  assert.equal(recovered.applied[0].orderStatus, null);
+
+  await assert.rejects(() => recovered.service.reconcileMercadoPagoPayment({
+    orderId,
+    paymentId,
+    amount: 1
+  }), /campos no permitidos/);
 });
 
 test('traduce estados y no aprueba con firma o importe inválidos', async () => {

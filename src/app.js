@@ -240,6 +240,21 @@ function createApp({
     }
   });
 
+  app.post('/api/payments/mercadopago/reconcile', async (req, res, next) => {
+    if (!paymentService || !mercadoPagoEnabled) {
+      return res.status(503).json({
+        error: 'Mercado Pago Sandbox todavía no está configurado.',
+        code: 'payment_provider_unavailable'
+      });
+    }
+    try {
+      const payment = await paymentService.reconcileMercadoPagoPayment(req.body);
+      return res.status(payment.status === 'pending_provider' ? 202 : 200).json({ payment });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
   app.post('/api/checkout/:provider', (_req, res) => {
     return res.status(404).json({
       error: 'Proveedor de pago no válido.',

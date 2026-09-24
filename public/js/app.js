@@ -877,6 +877,7 @@ async function captureMercadoPagoReturn() {
   if (params.has('paypal')) return;
   const mercadoPagoStatus = params.get('mercadopago');
   const orderId = params.get('orderId') || pendingMercadoPagoOrder();
+  const paymentId = params.get('payment_id') || params.get('collection_id');
   if (!mercadoPagoStatus && !orderId) return;
   if (mercadoPagoStatus && !['success', 'pending', 'failure'].includes(mercadoPagoStatus)) {
     clearMercadoPagoReturnParameters();
@@ -892,6 +893,17 @@ async function captureMercadoPagoReturn() {
   }
 
   rememberPendingMercadoPagoOrder(orderId);
+  try {
+    await requestJson('/api/payments/mercadopago/reconcile', {
+      method: 'POST',
+      body: JSON.stringify({
+        orderId,
+        ...(paymentId ? { paymentId } : {})
+      })
+    });
+  } catch {
+    // La orden continúa pendiente y el monitor reintenta sin confiar en el retorno del navegador.
+  }
   clearMercadoPagoReturnParameters();
   setSubmitting(true);
   try {

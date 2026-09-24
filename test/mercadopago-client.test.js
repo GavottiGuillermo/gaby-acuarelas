@@ -79,6 +79,24 @@ test('verifica la firma HMAC oficial y rechaza cualquier alteración', () => {
   assert.equal(verifyWebhookSignature({ ...input, xSignature: `ts=${timestamp},v1=${'0'.repeat(64)}` }), false);
 });
 
+test('busca pagos por referencia interna sin aceptar importes del navegador', async () => {
+  let requestedUrl;
+  const client = new MercadoPagoClient({
+    accessToken: 'token-de-prueba',
+    webhookSecret: 'firma-de-prueba',
+    async fetchImpl(url) {
+      requestedUrl = url;
+      return response({ results: [{ id: 987654321, external_reference: orderId }] });
+    }
+  });
+
+  const results = await client.searchPaymentsByExternalReference(orderId);
+  const url = new URL(requestedUrl);
+  assert.equal(url.pathname, '/v1/payments/search');
+  assert.equal(url.searchParams.get('external_reference'), orderId);
+  assert.equal(results[0].id, 987654321);
+});
+
 test('sólo habilita el cliente con configuración Sandbox completa', () => {
   assert.equal(createMercadoPagoClient({}), null);
   assert.throws(() => createMercadoPagoClient({

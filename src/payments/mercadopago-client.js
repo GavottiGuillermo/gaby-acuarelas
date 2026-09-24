@@ -138,6 +138,17 @@ class MercadoPagoClient {
     return this.fetchJson(`/v1/payments/${encodeURIComponent(paymentId)}`);
   }
 
+  async searchPaymentsByExternalReference(externalReference) {
+    const query = new URLSearchParams({
+      external_reference: externalReference,
+      sort: 'date_created',
+      criteria: 'desc',
+      limit: '10'
+    });
+    const payload = await this.fetchJson(`/v1/payments/search?${query.toString()}`);
+    return Array.isArray(payload?.results) ? payload.results : [];
+  }
+
   verifyWebhook({ headers, dataId }) {
     return verifyWebhookSignature({
       xSignature: headers['x-signature'],

@@ -306,6 +306,102 @@ class PaymentService {
     };
   }
 
+  async applyMercadoPagoPayment({ payment, paymentId, providerEventId, eventType, payloadSha256 }) {
+    const attemptId = payment?.metadata?.payment_attempt_id;
+    if (typeof attemptId !== 'string' || !UUID_PATTERN.test(attemptId)) {
+      return this.repository.applyWebhookEvent({
+        provider: 'mercadopago',
+        providerEventId,
+        eventType,
+        payloadSha256,
+        attemptId: null,
+        processingStatus: 'ignored'
+      });
+    }
+
+    const attempt = await this.repository.findAttemptById('mercadopago', attemptId);
+    if (!attempt || !attempt.providerReference) {
+      return this.repository.applyWebhookEvent({
+        provider: 'mercadopago',
+        providerEventId,
+        eventType,
+        payloadSha256,
+        attemptId: null,
+        processingStatus: 'ignored'
+      });
+    }
+
+    const preference = await this.mercadoPagoClient.getPreference(attempt.providerReference);
+    assertReconciledMercadoPagoPreference(preference, attempt);
+    assertReconciledMercadoPagoPayment(payment, paymentId, attempt);
+    const outcome = MERCADOPAGO_STATUS_OUTCOMES[payment.status];
+    return this.repository.applyWebhookEvent({
+      provider: 'mercadopago',
+      providerEventId,
+      eventType: `${eventType}:${payment.status || 'unknown'}`,
+      payloadSha256,
+      attemptId: attempt.id,
+      attemptStatus: outcome?.attemptStatus,
+      orderStatus: outcome?.orderStatus,
+      processingStatus: outcome ? 'processed' : 'ignored'
+    });
+  }
+
+  async reconcileMercadoPagoPayment(body) {
+    assertOnlyKeys(body, ['orderId', 'paymentId']);
+    assertUuid(body.orderId);
+    if (body.paymentId !== undefined
+        && (typeof body.paymentId !== 'string'
+          || !MERCADOPAGO_PAYMENT_ID_PATTERN.test(body.paymentId))) {
+      throw new PaymentError('La referencia de pago de Mercado Pago no es válida.');
+    }
+
+    let paymentId = body.paymentId;
+    if (!paymentId) {
+      const candidates = await this.mercadoPagoClient.searchPaymentsByExternalReference(body.orderId);
+      const candidate = candidates.find((item) => (
+        String(item?.external_reference || '') === body.orderId
+        && MERCADOPAGO_PAYMENT_ID_PATTERN.test(String(item?.id || ''))
+      ));
+      paymentId = candidate ? String(candidate.id) : null;
+    }
+
+    if (!paymentId) {
+      return {
+        orderId: body.orderId,
+        status: 'pending_provider',
+        processed: false
+      };
+    }
+
+    const payment = await this.mercadoPagoClient.getPayment(paymentId);
+    if (payment?.external_reference !== body.orderId) {
+      throw new PaymentError('El pago de Mercado Pago no corresponde a la orden.', {
+        code: 'payment_reconciliation_failed',
+        status: 409
+      });
+    }
+    const providerEventId = `reconcile:${paymentId}:${payment.status || 'unknown'}`;
+    const payloadSha256 = crypto.createHash('sha256')
+      .update(`${body.orderId}:${paymentId}:${payment.status || 'unknown'}`)
+      .digest('hex');
+    const result = await this.applyMercadoPagoPayment({
+      payment,
+      paymentId,
+      providerEventId,
+      eventType: 'authenticated-return',
+      payloadSha256
+    });
+    return {
+      orderId: body.orderId,
+      paymentId,
+      providerStatus: payment.status,
+      status: result.processingStatus || (result.duplicate ? 'duplicate' : 'unknown'),
+      processed: Boolean(result.processed),
+      duplicate: Boolean(result.duplicate)
+    };
+  }
+
   async processPayPalWebhook({ headers, event, rawBody }) {
     if (!event || typeof event !== 'object' || Array.isArray(event)
         || typeof event.id !== 'string' || typeof event.event_type !== 'string') {
@@ -428,43 +524,12 @@ class PaymentService {
     }
 
     const payment = await this.mercadoPagoClient.getPayment(paymentId);
-    const attemptId = payment?.metadata?.payment_attempt_id;
-    if (typeof attemptId !== 'string' || !UUID_PATTERN.test(attemptId)) {
-      return this.repository.applyWebhookEvent({
-        provider: 'mercadopago',
-        providerEventId: eventId,
-        eventType: `${event.type}:${event.action || 'unknown'}`,
-        payloadSha256,
-        attemptId: null,
-        processingStatus: 'ignored'
-      });
-    }
-
-    const attempt = await this.repository.findAttemptById('mercadopago', attemptId);
-    if (!attempt || !attempt.providerReference) {
-      return this.repository.applyWebhookEvent({
-        provider: 'mercadopago',
-        providerEventId: eventId,
-        eventType: `${event.type}:${event.action || 'unknown'}`,
-        payloadSha256,
-        attemptId: null,
-        processingStatus: 'ignored'
-      });
-    }
-
-    const preference = await this.mercadoPagoClient.getPreference(attempt.providerReference);
-    assertReconciledMercadoPagoPreference(preference, attempt);
-    assertReconciledMercadoPagoPayment(payment, paymentId, attempt);
-    const outcome = MERCADOPAGO_STATUS_OUTCOMES[payment.status];
-    return this.repository.applyWebhookEvent({
-      provider: 'mercadopago',
+    return this.applyMercadoPagoPayment({
+      payment,
+      paymentId,
       providerEventId: eventId,
-      eventType: `${event.type}:${event.action || 'unknown'}:${payment.status || 'unknown'}`,
-      payloadSha256,
-      attemptId: attempt.id,
-      attemptStatus: outcome?.attemptStatus,
-      orderStatus: outcome?.orderStatus,
-      processingStatus: outcome ? 'processed' : 'ignored'
+      eventType: `${event.type}:${event.action || 'unknown'}`,
+      payloadSha256
     });
   }
 }
