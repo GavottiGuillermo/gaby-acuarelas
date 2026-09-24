@@ -353,7 +353,9 @@ class PaymentService {
     if (body.paymentId !== undefined
         && (typeof body.paymentId !== 'string'
           || !MERCADOPAGO_PAYMENT_ID_PATTERN.test(body.paymentId))) {
-      throw new PaymentError('La referencia de pago de Mercado Pago no es válida.');
+      throw new PaymentError('La referencia de pago de Mercado Pago no es válida.', {
+        code: 'invalid_mercadopago_payment_id'
+      });
     }
 
     let paymentId = body.paymentId;

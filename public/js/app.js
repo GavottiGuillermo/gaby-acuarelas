@@ -371,6 +371,11 @@ function clearMercadoPagoReturnParameters() {
   window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
 }
 
+function mercadoPagoPaymentIdFrom(params) {
+  return [params.get('payment_id'), params.get('collection_id')]
+    .find((value) => /^\d{1,32}$/.test(value || '')) || null;
+}
+
 async function requestJson(url, options = {}) {
   const response = await fetch(url, {
     ...options,
@@ -879,7 +884,7 @@ async function captureMercadoPagoReturn() {
   if (params.has('paypal')) return;
   const mercadoPagoStatus = params.get('mercadopago');
   const orderId = params.get('orderId') || pendingMercadoPagoOrder();
-  const paymentId = params.get('payment_id') || params.get('collection_id');
+  const paymentId = mercadoPagoPaymentIdFrom(params);
   if (!mercadoPagoStatus && !orderId) return;
   if (mercadoPagoStatus && !['success', 'pending', 'failure'].includes(mercadoPagoStatus)) {
     clearMercadoPagoReturnParameters();
@@ -890,6 +895,16 @@ async function captureMercadoPagoReturn() {
   if (!orderId) {
     clearMercadoPagoReturnParameters();
     showFormStatus('Falta la referencia interna de la orden de Mercado Pago. No se considera pagada.', 'error');
+    openCart();
+    return;
+  }
+  if (mercadoPagoStatus === 'failure' && !paymentId) {
+    clearMercadoPagoReturnParameters();
+    forgetPendingMercadoPagoOrder();
+    showFormStatus(
+      'Volviste de Mercado Pago sin completar el pago. No se registró ningún cobro y podés volver a intentarlo.',
+      'warning'
+    );
     openCart();
     return;
   }

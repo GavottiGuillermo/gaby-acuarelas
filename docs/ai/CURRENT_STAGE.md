@@ -130,6 +130,7 @@ Integrar Mercado Pago y PayPal exclusivamente en ambientes sandbox, manteniendo 
 - Una compra Mercado Pago Sandbox posterior quedó `approved` mediante esa conciliación autenticada y la interfaz mostró el resumen inmutable de la orden. El texto visible ya no atribuye exclusivamente la confirmación a un webhook cuando provino de esta verificación segura.
 - Se agregaron trazas operativas estructuradas para creación de orden, inicio de checkout, captura PayPal y conciliación Mercado Pago. Registran solamente identificadores técnicos, estado, moneda, cantidad de productos e idempotencia; no incluyen comprador, correo, cuerpos, encabezados, firmas ni credenciales. Las consultas periódicas de estado no se registran para evitar ruido.
 - `npm run check` aprobó la instrumentación con 50 pruebas automatizadas (49 aprobadas y la prueba PostgreSQL opcional omitida por no estar configurada `TEST_DATABASE_URL`), compuerta de etapa y catálogo el 2026-09-24.
+- El retorno de Mercado Pago al abandonar Checkout Pro puede incluir `payment_id=null`. La interfaz descarta ese valor por no ser una referencia de pago, deja de mostrar una confirmación indefinida y vuelve al carrito con un aviso de que no hubo cobro. La orden interna permanece pendiente porque un parámetro del navegador no puede autorizar una transición a `cancelled`; un rechazo con identificador real continúa conciliándose contra la API autenticada.
 
 ## Regla para cerrar esta etapa
 

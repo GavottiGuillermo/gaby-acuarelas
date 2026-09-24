@@ -184,6 +184,10 @@ test('concilia activamente el retorno consultando el pago autenticado', async ()
     paymentId,
     amount: 1
   }), /campos no permitidos/);
+  await assert.rejects(() => recovered.service.reconcileMercadoPagoPayment({
+    orderId,
+    paymentId: 'null'
+  }), (error) => error.code === 'invalid_mercadopago_payment_id');
 });
 
 test('traduce estados y no aprueba con firma o importe inválidos', async () => {
