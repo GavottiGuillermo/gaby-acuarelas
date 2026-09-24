@@ -132,7 +132,7 @@
 
 ## D-018 - Mercado Pago mediante Checkout Pro Sandbox
 
-- Estado: implementación local aceptada para la etapa 4; validación real pendiente de credenciales Sandbox.
+- Estado: integración Sandbox activa y validada con una compra aprobada e idempotencia de webhook el 2026-09-24; restan los escenarios pendiente, rechazado y cancelado para cerrar la etapa 4.
 - El backend usa la API de Preferencias de Checkout Pro y redirige únicamente al `sandbox_init_point`.
 - La orden ARS se crea antes que la preferencia y conserva los importes calculados por el servidor; el navegador nunca envía precios ni moneda.
 - El retorno del navegador no confirma el pago. Sólo un webhook con firma HMAC válida, seguido de consultas autenticadas del pago y la preferencia, puede cambiar el estado interno.

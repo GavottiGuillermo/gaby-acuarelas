@@ -17,16 +17,16 @@ Integrar Mercado Pago y PayPal exclusivamente en ambientes sandbox, manteniendo 
 ## Criterios de salida
 
 - [x] Creación de órdenes PayPal sandbox desde el servidor en USD.
-- [ ] Creación de preferencias u órdenes Mercado Pago sandbox desde el servidor en ARS.
-- [ ] Redirección o aprobación del pago según cada proveedor.
-- [ ] Verificación de firmas de webhooks de PayPal y Mercado Pago.
-- [ ] Conciliación de proveedor, referencia, orden, producto, moneda, importe y estado.
-- [ ] Registro idempotente de intentos y eventos de pago.
+- [x] Creación de preferencias u órdenes Mercado Pago sandbox desde el servidor en ARS.
+- [x] Redirección o aprobación del pago según cada proveedor.
+- [x] Verificación de firmas de webhooks de PayPal y Mercado Pago.
+- [x] Conciliación de proveedor, referencia, orden, producto, moneda, importe y estado.
+- [x] Registro idempotente de intentos y eventos de pago.
 - [ ] Casos aprobado, rechazado, pendiente y cancelado probados para ambos proveedores.
-- [ ] Webhooks repetidos probados sin duplicar aprobaciones ni eventos efectivos.
+- [x] Webhooks repetidos probados sin duplicar aprobaciones ni eventos efectivos.
 - [x] Importes manipulados desde el cliente rechazados antes de crear el pago.
-- [ ] Credenciales sandbox almacenadas únicamente en variables de entorno.
-- [ ] Ausencia de credenciales, cuerpos sensibles y datos personales en logs de prueba.
+- [x] Credenciales sandbox almacenadas únicamente en variables de entorno.
+- [x] Ausencia de credenciales, cuerpos sensibles y datos personales en logs de prueba.
 
 ## Decisiones aplicables
 
@@ -119,6 +119,13 @@ Integrar Mercado Pago y PayPal exclusivamente en ambientes sandbox, manteniendo 
 - La configuración exige `MERCADOPAGO_ENV=sandbox`, `MERCADOPAGO_ACCESS_TOKEN` y `MERCADOPAGO_WEBHOOK_SECRET`; sin ambas credenciales el proveedor permanece deshabilitado y una configuración parcial se rechaza al iniciar el servicio.
 - Las pruebas automatizadas nuevas cubren preferencia ARS, rechazo de importes del navegador, firma alterada, conciliación, duplicados y estados aprobado, pendiente, rechazado y cancelado. Resta validar el flujo contra Mercado Pago porque las credenciales Sandbox todavía no están configuradas.
 - `npm run check` aprobó la integración local el 2026-09-23 con 46 pruebas automatizadas (45 aprobadas y la prueba PostgreSQL opcional omitida por no estar configurada `TEST_DATABASE_URL`), compuerta de etapa y catálogo. El escaneo del árbol de trabajo no encontró credenciales de Mercado Pago.
+- El 2026-09-24 se completó una compra Mercado Pago Sandbox del ebook por ARS 7.700. La preferencia se creó desde la orden interna `3d3744d9-f498-4aba-9453-f8f35efdd4a8`, redirigió exclusivamente a `sandbox.mercadopago.com.ar` y el pago informado fue `180539840556`.
+- La URL canónica del webhook quedó en `https://gabyacuarelas.com/api/webhooks/mercadopago`: la variante `www` devuelve una redirección 307 y no es apta para la validación directa del proveedor.
+- Mercado Pago aceptó con HTTP 200 la notificación firmada del pago. El backend consultó el recurso autenticado y concilió preferencia, intento, orden, metadatos, producto, ARS 7.700 y estado antes de cambiar la orden a `approved`.
+- El simulador de Mercado Pago informa un `live_mode` que puede diferir del recurso consultado. Ese campo del evento se valida como booleano, pero la autoridad queda en el pago recuperado con el Access Token; no se omiten la firma ni las restantes conciliaciones.
+- La misma notificación `123456` se envió dos veces y ambas solicitudes respondieron HTTP 200. PostgreSQL conservó exactamente un evento `processed`, un intento Mercado Pago `approved` y una sola orden `approved`, confirmando idempotencia sin duplicar efectos.
+- Las credenciales se obtuvieron de la pestaña Prueba de Mercado Pago y permanecen en variables privadas de Render. Los logs registraron sólo códigos seguros durante el diagnóstico y no expusieron cuerpos, firmas, credenciales ni datos personales.
+- `npm run check` aprobó los ajustes de webhooks con 48 pruebas automatizadas (47 aprobadas y la prueba PostgreSQL opcional omitida por no estar configurada `TEST_DATABASE_URL`), compuerta de etapa y catálogo el 2026-09-24.
 
 ## Regla para cerrar esta etapa
 
