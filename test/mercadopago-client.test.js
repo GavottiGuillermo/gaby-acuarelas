@@ -56,7 +56,7 @@ test('crea una preferencia ARS sólo con la orden interna y usa el punto Sandbox
   assert.equal(body.metadata.payment_attempt_id, attemptId);
   assert.equal(body.items[0].currency_id, 'ARS');
   assert.equal(body.items[0].unit_price, 18500);
-  assert.equal(body.notification_url, 'https://sandbox.example.test/api/webhooks/mercadopago');
+  assert.equal(body.notification_url, undefined);
   assert.doesNotMatch(request.options.body, /access_token|webhookSecret/i);
 });
 

@@ -113,7 +113,6 @@ class MercadoPagoClient {
           pending: `${returnBaseUrl}/?mercadopago=pending&orderId=${order.id}`,
           failure: `${returnBaseUrl}/?mercadopago=failure&orderId=${order.id}`
         },
-        notification_url: `${returnBaseUrl}/api/webhooks/mercadopago`,
         auto_return: 'approved',
         binary_mode: false
       })
